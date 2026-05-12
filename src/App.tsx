@@ -1213,12 +1213,15 @@ function LoadingScreen({ onFadeOutDone }: { onFadeOutDone: () => void }) {
 
   useEffect(() => {
     const coverPaths = albums.map((a) => a.cover);
+    const heroPaths = albums.map((a) => a.heroImage ?? a.cover);
     const timelinePaths = Array.from({ length: 10 }, (_, i) => `/assets/${i + 1}.png`);
     const texturePaths = ["/assets/textures/black-paper-grain.jpeg", "/assets/textures/void-paper-wash.jpeg"];
-    const allPaths = [...new Set([...coverPaths, ...timelinePaths, ...texturePaths])];
+    const extraPaths = ["/assets/heroes/kanye-signature.png", "/assets/heroes/profile.png", "/assets/heroes/sign.png"];
+    const criticalPaths = [...new Set([...coverPaths, ...timelinePaths, ...texturePaths])];
+    const bgPaths = [...new Set([...heroPaths, ...extraPaths])].filter((p) => !criticalPaths.includes(p));
 
     let loaded = 0;
-    const total = allPaths.length;
+    const total = criticalPaths.length;
 
     function check() {
       loaded++;
@@ -1228,12 +1231,15 @@ function LoadingScreen({ onFadeOutDone }: { onFadeOutDone: () => void }) {
       }
     }
 
-    allPaths.forEach((src) => {
+    criticalPaths.forEach((src) => {
       const img = new Image();
       img.onload = check;
       img.onerror = check;
       img.src = src;
     });
+
+    // hero images preload in background, don't block loading screen
+    bgPaths.forEach((src) => { const img = new Image(); img.src = src; });
   }, []);
 
   function handleTransitionEnd() {
