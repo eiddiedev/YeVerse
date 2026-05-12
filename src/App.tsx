@@ -1239,14 +1239,9 @@ function LoadingScreen({ onComplete }: { onComplete: () => void }) {
     });
   }, [onComplete]);
 
-  const p = progress / 100;
-  const r = Math.round(153 + (245 - 153) * p);
-  const g = Math.round(153 + (240 - 153) * p);
-  const b = Math.round(153 + (232 - 153) * p);
-
   return (
     <div className={`loading-screen${fadeOut ? " fade-out" : ""}`}>
-      <span className="loading-ye" style={{ color: `rgb(${r},${g},${b})` }}>YE</span>
+      <span className="loading-ye" style={{ "--load": `${progress}%` } as React.CSSProperties}>YE</span>
     </div>
   );
 }

@@ -2019,10 +2019,20 @@ a {
   pointer-events: none;
 }
 
+@property --load {
+  syntax: "<percentage>";
+  inherits: false;
+  initial-value: 0%;
+}
+
 .loading-ye {
   font-family: "Archivo Black", "Anton", Impact, sans-serif;
   font-size: clamp(80px, 18vw, 200px);
   font-weight: 900;
   letter-spacing: 0.04em;
-  transition: color 80ms linear;
+  color: transparent;
+  background: linear-gradient(90deg, #f5f0e8 var(--load, 0%), #666 var(--load, 0%));
+  background-clip: text;
+  -webkit-background-clip: text;
+  transition: --load 120ms linear;
 }
