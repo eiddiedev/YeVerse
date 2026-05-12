@@ -869,7 +869,7 @@ function ArchiveIssue({ lang }: { lang: Lang }) {
   );
 }
 
-function AboutIssue({ lang }: { lang: Lang }) {
+function AboutIssue() {
   const [wobble, setWobble] = useState(false);
 
   function handleClick() {
@@ -888,12 +888,12 @@ function AboutIssue({ lang }: { lang: Lang }) {
       >
         {/* Header */}
         <div className="id-card__header">
-          <span>{lang === "zh" ? "加载中 / EIDDIE 个人品牌" : "loading / eiddie personal branding"}</span>
+          <span>loading / eiddie personal branding</span>
           <span>version 001</span>
         </div>
 
         <div className="id-card__body">
-          {/* Left: portrait / signature */}
+          {/* Left: portrait */}
           <div className="id-card__portrait">
             <img src="/assets/heroes/profile.png" alt="Ye" />
           </div>
@@ -906,9 +906,7 @@ function AboutIssue({ lang }: { lang: Lang }) {
               <span className="id-card__label">[name]</span>
               <span className="id-card__value">EIDDIE</span>
               <span className="id-card__label">[type]</span>
-              <span className="id-card__value">
-                {lang === "zh" ? "粉丝致敬站" : "Fan Tribute"}
-              </span>
+              <span className="id-card__value">Fan Tribute</span>
             </div>
 
             <div className="id-card__divider" />
@@ -946,7 +944,7 @@ function AboutIssue({ lang }: { lang: Lang }) {
 
             {/* Signature */}
             <div className="id-card__signature">
-              <span>{lang === "zh" ? "签名:" : "Signature:"}</span>
+              <span>Signature:</span>
               <img src="/assets/heroes/sign.png" alt="" className="id-card__sig-img" />
             </div>
           </div>
@@ -974,9 +972,7 @@ function AboutIssue({ lang }: { lang: Lang }) {
 
       {/* Disclaimer */}
       <p className="id-card__disclaimer">
-        {lang === "zh"
-          ? "YeVerse 是一个非官方粉丝致敬网站原型，用于视觉设计、交互叙事和资料策展实验。本站不托管音频，所有音乐、封面、商标及素材版权归其各自权利方所有。"
-          : "YeVerse is an unofficial fan tribute website prototype for visual design, interaction narrative, and archival curation. This site does not host audio. Music, cover art, trademarks, and related materials belong to their respective rights holders."}
+        YeVerse is an unofficial fan tribute website prototype for visual design, interaction narrative, and archival curation. This site does not host audio. Music, cover art, trademarks, and related materials belong to their respective rights holders.
       </p>
     </section>
   );
@@ -1038,7 +1034,7 @@ export default function App() {
         )}
         {activeIssue === "yeworld" && <YeWorldIssue lang={lang} />}
         {activeIssue === "archive" && <ArchiveIssue lang={lang} />}
-        {activeIssue === "about" && <AboutIssue lang={lang} />}
+        {activeIssue === "about" && <AboutIssue />}
       </main>
       {openAlbum && <AlbumModal album={openAlbum} lang={lang} onClose={() => setOpenAlbum(null)} />}
     </div>
