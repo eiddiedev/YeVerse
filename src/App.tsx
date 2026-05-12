@@ -1265,8 +1265,7 @@ export default function App() {
   useEffect(() => {
     if (!loadingDone) return;
     const heroPaths = albums.map((a) => a.heroImage ?? a.cover);
-    const extraPaths = ["/assets/heroes/kanye-signature.png", "/assets/heroes/profile.png", "/assets/heroes/sign.png"];
-    [...new Set([...heroPaths, ...extraPaths])].forEach((src) => { const img = new Image(); img.src = src; });
+    ["/assets/heroes/profile.png", "/assets/heroes/sign.png", ...heroPaths].forEach((src) => { const img = new Image(); img.src = src; });
   }, [loadingDone]);
 
   function navigate(issue: IssueId) {
