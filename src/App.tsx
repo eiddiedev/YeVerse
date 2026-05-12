@@ -1207,7 +1207,7 @@ function AboutIssue({ lang }: { lang: Lang }) {
   );
 }
 
-function LoadingScreen({ onComplete }: { onComplete: () => void }) {
+function LoadingScreen({ onFadeOutDone }: { onFadeOutDone: () => void }) {
   const [progress, setProgress] = useState(0);
   const [fadeOut, setFadeOut] = useState(false);
 
@@ -1227,7 +1227,6 @@ function LoadingScreen({ onComplete }: { onComplete: () => void }) {
       setProgress(Math.round((loaded / total) * 100));
       if (loaded >= total) {
         setTimeout(() => setFadeOut(true), 400);
-        setTimeout(() => onComplete(), 1000);
       }
     }
 
@@ -1237,17 +1236,24 @@ function LoadingScreen({ onComplete }: { onComplete: () => void }) {
       img.onerror = check;
       img.src = src;
     });
-  }, [onComplete]);
+  }, []);
+
+  function handleTransitionEnd() {
+    if (fadeOut) onFadeOutDone();
+  }
 
   return (
-    <div className={`loading-screen${fadeOut ? " fade-out" : ""}`}>
+    <div
+      className={`loading-screen${fadeOut ? " fade-out" : ""}`}
+      onTransitionEnd={handleTransitionEnd}
+    >
       <span className="loading-ye" style={{ "--load": `${progress}%` } as React.CSSProperties}>YE</span>
     </div>
   );
 }
 
 export default function App() {
-  const [imagesLoaded, setImagesLoaded] = useState(false);
+  const [loadingDone, setLoadingDone] = useState(false);
   const [lang, setLang] = useState<Lang>("zh");
   const [activeIssue, setActiveIssue] = useState<IssueId>("hero");
   const [drawerOpen, setDrawerOpen] = useState(false);
@@ -1287,12 +1293,10 @@ export default function App() {
     pendingAlbumRef.current = null;
   }
 
-  if (!imagesLoaded) {
-    return <LoadingScreen onComplete={() => setImagesLoaded(true)} />;
-  }
-
   return (
-    <div className="app">
+    <>
+      {!loadingDone && <LoadingScreen onFadeOutDone={() => setLoadingDone(true)} />}
+      <div className="app" style={{ opacity: loadingDone ? 1 : 0, transition: "opacity 400ms ease" }}>
       <CustomCursor />
       <div className="grain" aria-hidden="true" />
       <IssueDrawer
@@ -1331,5 +1335,6 @@ export default function App() {
       />
       {openAlbum && <AlbumModal album={openAlbum} lang={lang} onClose={() => setOpenAlbum(null)} />}
     </div>
+    </>
   );
 }
