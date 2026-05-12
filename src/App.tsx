@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState, type CSSProperties, type PointerEvent } from "react";
+import { Fragment, useEffect, useRef, useState, type CSSProperties, type PointerEvent } from "react";
 import { ArrowUpRight, Globe2, Menu, X } from "lucide-react";
 import * as THREE from "three";
 import { albums, timelineEras, type Album, type Lang } from "./data";
@@ -87,10 +87,15 @@ function makeTextTexture(album: Album, mode: "spine" | "back") {
   context.translate(canvas.width / 2, canvas.height / 2);
   context.rotate(Math.PI / 2);
   context.textBaseline = "middle";
-  context.fillStyle = "rgba(255,255,255,0.9)";
-  context.font = `900 ${mode === "spine" ? 38 : 50}px Arial, sans-serif`;
+  const titleColor = album.spineColor || album.titleColor || album.palette.text;
+  context.fillStyle = titleColor;
+  const primaryFont = (album.titleFont || "Arial").split(",")[0].trim().replace(/^["']|["']$/g, "");
+  const spineFontSize = mode === "spine" ? 38 : 50;
+  context.font = `900 ${spineFontSize}px ${primaryFont}, sans-serif`;
   context.textAlign = "center";
-  context.fillText(meta.title, 0, 0, canvas.height - 180);
+  // Limit title width so it doesn't cover the year code
+  const titleMaxWidth = canvas.height - 280;
+  context.fillText(meta.title, 0, 0, titleMaxWidth);
   context.fillStyle = "rgba(255,255,255,0.48)";
   context.font = "800 32px Arial, sans-serif";
   context.textAlign = "right";
@@ -229,6 +234,8 @@ function TimelineIssue({ lang, onAlbumJump }: { lang: Lang; onAlbumJump: (albumI
           const side = index % 2 === 0 ? "left" : "right";
           const figNum = String(index + 1).padStart(2, "0");
 
+          const figImg = `/assets/${index + 1}.png`;
+
           return (
             <article key={era.id} className={`tl-entry tl-entry--${side}`}>
               {/* Dot on axis */}
@@ -238,11 +245,15 @@ function TimelineIssue({ lang, onAlbumJump }: { lang: Lang; onAlbumJump: (albumI
 
               {/* Content */}
               <div className="tl-content">
+                {/* Image side */}
+                <div className="tl-fig">
+                  <img src={figImg} alt={`Fig. ${figNum}`} className={`tl-fig-img${(index === 0 || index === 9) ? " tl-fig-img--sm" : ""}`} />
+                </div>
+
                 {/* Text side */}
                 <div className="tl-text">
                   <div className="tl-years">{era.range}</div>
                   <h3 className="tl-era-title">{text(era.title, lang)}</h3>
-                  <div className="tl-line-accent" aria-hidden="true" />
                   <p className="tl-body">{text(era.body, lang)}</p>
                   {era.albumIds && era.albumIds.length > 0 && (
                     <div className="tl-albums">
@@ -256,13 +267,6 @@ function TimelineIssue({ lang, onAlbumJump }: { lang: Lang; onAlbumJump: (albumI
                       })}
                     </div>
                   )}
-                </div>
-
-                {/* Image side */}
-                <div className="tl-fig">
-                  <div className="tl-fig-placeholder">
-                    <span className="tl-fig-label">FIG. {figNum}</span>
-                  </div>
                 </div>
               </div>
             </article>
@@ -361,13 +365,13 @@ function CssAlbumShelf({
           >
             <span className="case-shadow" aria-hidden="true" />
             <span className="case-side spine-face">
-              <strong>{spineMeta(album).title}</strong>
+              <strong style={{ fontFamily: album.titleFont, color: album.spineColor || album.titleColor || album.palette.text }}>{spineMeta(album).title}</strong>
               <em>{spineMeta(album).code}</em>
             </span>
             <span className="case-side front-face">
               <span className="front-plastic" />
               <span className="front-spine-strip">
-                <strong>{album.title}</strong>
+                <strong style={{ fontFamily: album.titleFont, color: album.spineColor || album.titleColor || album.palette.text }}>{album.title}</strong>
               </span>
               <span className="jewel-hinge" aria-hidden="true" />
               <span className="jewel-bevel" aria-hidden="true" />
@@ -375,7 +379,7 @@ function CssAlbumShelf({
             </span>
             <span className="case-side back-face" />
             <span className="case-side left-spine-face">
-              <strong>{spineMeta(album).title}</strong>
+              <strong style={{ fontFamily: album.titleFont, color: album.spineColor || album.titleColor || album.palette.text }}>{spineMeta(album).title}</strong>
             </span>
             <span className="case-side case-top" />
             <span className="case-side case-bottom" />
@@ -586,6 +590,30 @@ function ThreeAlbumShelf({
     resize();
     window.addEventListener("resize", resize);
     tick();
+
+    // Rebuild spine/back textures once Google Fonts are loaded
+    const fontFamilies = [...new Set(albums.map(a => (a.titleFont || "Arial").split(",")[0].trim().replace(/^["']|["']$/g, "")))];
+    Promise.all(fontFamilies.map(f => document.fonts.load(`900 38px "${f}"`).catch(() => {}))).then(() => {
+      if (state.disposed) return;
+      groups.forEach((group, index) => {
+        const album = albums[index];
+        const meshes = group.children.filter((c): c is THREE.Mesh => c instanceof THREE.Mesh);
+        if (!meshes[0]) return;
+        const mats = Array.isArray(meshes[0].material) ? meshes[0].material : [meshes[0].material];
+        const spineMat = mats[0] as THREE.MeshPhysicalMaterial;
+        const backMat = mats[5] as THREE.MeshStandardMaterial;
+        if (spineMat) {
+          spineMat.map?.dispose();
+          spineMat.map = makeTextTexture(album, "spine");
+          spineMat.needsUpdate = true;
+        }
+        if (backMat) {
+          backMat.map?.dispose();
+          backMat.map = makeTextTexture(album, "back");
+          backMat.needsUpdate = true;
+        }
+      });
+    });
 
     return () => {
       state.disposed = true;
@@ -824,9 +852,44 @@ function TransitionOverlay({
   );
 }
 
+function PitchforkBadge({ score, albumTitle }: { score: number; albumTitle: string }) {
+  const isHigh = score >= 8.0;
+  const url = `https://pitchfork.com/search/?query=${encodeURIComponent(albumTitle)}`;
+  return (
+    <a className={`badge-pitchfork${isHigh ? " badge-pitchfork--high" : ""}`} href={url} target="_blank" rel="noreferrer">
+      <span className="badge-pitchfork__score">{score.toFixed(1)}</span>
+    </a>
+  );
+}
+
+function MetacriticBadge({ score, albumTitle }: { score: number; albumTitle: string }) {
+  const tier = score >= 80 ? "green" : score >= 60 ? "yellow" : "red";
+  const url = `https://www.metacritic.com/search/${encodeURIComponent(albumTitle)}/`;
+  return (
+    <a className={`badge-metacritic badge-metacritic--${tier}`} href={url} target="_blank" rel="noreferrer">
+      <span className="badge-metacritic__score">{score}</span>
+    </a>
+  );
+}
+
+function AotyBadge({ score, albumTitle }: { score: number; albumTitle: string }) {
+  const url = `https://www.albumoftheyear.org/search/?q=${encodeURIComponent(albumTitle)}`;
+  const barColor = score >= 70 ? "#4a7a2e" : score >= 50 ? "#a08530" : "#7a2e2e";
+  return (
+    <a className="badge-aoty" href={url} target="_blank" rel="noreferrer">
+      <span className="badge-aoty__score">{score}</span>
+      <div className="badge-aoty__track">
+        <div className="badge-aoty__fill" style={{ width: `${score}%`, backgroundColor: barColor }} />
+        <div className="badge-aoty__dot" style={{ left: `${score}%` }} />
+      </div>
+    </a>
+  );
+}
+
 function AlbumModal({ album, lang, onClose }: { album: Album; lang: Lang; onClose: () => void }) {
   const scrollRef = useRef<HTMLDivElement | null>(null);
   const [scrollProgress, setScrollProgress] = useState(0);
+  const [activeTrack, setActiveTrack] = useState<{ name: string; id: string } | null>(null);
 
   useEffect(() => {
     const el = scrollRef.current;
@@ -840,6 +903,7 @@ function AlbumModal({ album, lang, onClose }: { album: Album; lang: Lang; onClos
   }, []);
 
   const heroSrc = album.heroImage ?? album.cover;
+  const r = album.ratings;
 
   return (
     <div className="album-modal" role="dialog" aria-modal="true" aria-label={album.title} style={albumStyle(album)}>
@@ -855,49 +919,79 @@ function AlbumModal({ album, lang, onClose }: { album: Album; lang: Lang; onClos
       <div className="album-scroll" ref={scrollRef}>
         <section className="album-hero-spacer" />
         <section
-          className="album-info-panel"
+          className="album-detail"
           style={{
             opacity: scrollProgress < 0.5 ? 0 : Math.min(1, (scrollProgress - 0.5) * 3),
             transform: `translateY(${scrollProgress < 0.5 ? 100 : Math.max(0, 100 - (scrollProgress - 0.5) * 300)}px)`,
           }}
         >
-          <div className="album-info-copy">
-            <p>{album.year} / {text(albumKinds[album.type], lang)} / {album.credit}</p>
-            <h3>{lang === "zh" ? "专辑介绍" : "Album notes"}</h3>
-            <span>{text(album.summary, lang)}</span>
-            {album.note && <em>{text(album.note, lang)}</em>}
-            <div className="listen-row">
-              <a href={album.links.apple} target="_blank" rel="noreferrer">Apple Music <ArrowUpRight size={14} /></a>
-              <a href={album.links.spotify} target="_blank" rel="noreferrer">Spotify <ArrowUpRight size={14} /></a>
+          <h1 className="album-detail-title" style={{ color: album.titleColor || album.palette.text, fontFamily: album.titleFont, fontWeight: album.titleBold ? 700 : undefined, textTransform: album.titleUpper ? 'uppercase' : undefined }}>{album.title}</h1>
+
+          <div className="album-detail-body">
+            <div className="album-detail-desc">
+              <h3>{lang === "zh" ? "专辑介绍" : "Album notes"}</h3>
+              <p>{album.year} / {text(albumKinds[album.type], lang)} / {album.credit}</p>
+              <span>{text(album.summary, lang)}</span>
+              {album.note && <em>{text(album.note, lang)}</em>}
+              {r && (r.pitchfork != null || r.metacritic != null || r.aoty != null) && (
+                <div className="album-ratings">
+                  {r.pitchfork != null && <PitchforkBadge score={r.pitchfork} albumTitle={album.title} />}
+                  {r.metacritic != null && <MetacriticBadge score={r.metacritic} albumTitle={album.title} />}
+                  {r.aoty != null && <AotyBadge score={r.aoty} albumTitle={album.title} />}
+                </div>
+              )}
+              <div className="listen-row">
+                <a href={album.links.apple} target="_blank" rel="noreferrer">Apple Music <ArrowUpRight size={14} /></a>
+                <a href={album.links.spotify} target="_blank" rel="noreferrer">Spotify <ArrowUpRight size={14} /></a>
+              </div>
+            </div>
+            <div className="album-detail-tracks">
+              <h3>{lang === "zh" ? "歌曲列表" : "Tracklist"}</h3>
+              <ol>
+                {album.tracks.map((track) => (
+                  <Fragment key={track.name}>
+                    <li>
+                      <span>{track.name}</span>
+                      {track.spotifyTrackId && (
+                        <button
+                          className={`track-play-btn${activeTrack?.id === track.spotifyTrackId ? " track-play-btn--active" : ""}`}
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            if (activeTrack?.id === track.spotifyTrackId) {
+                              setActiveTrack(null);
+                            } else {
+                              setActiveTrack({ name: track.name, id: track.spotifyTrackId! });
+                            }
+                          }}
+                          aria-label={`Play ${track.name}`}
+                        >
+                          {activeTrack?.id === track.spotifyTrackId
+                            ? <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><rect x="6" y="4" width="4" height="16"/><rect x="14" y="4" width="4" height="16"/></svg>
+                            : <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg>
+                          }
+                        </button>
+                      )}
+                    </li>
+                    {activeTrack?.id === track.spotifyTrackId && track.spotifyTrackId && (
+                      <li className="track-embed-row">
+                        <iframe
+                          src={`https://open.spotify.com/embed/track/${track.spotifyTrackId}?utm_source=generator&theme=0`}
+                          width="100%"
+                          height="80"
+                          frameBorder="0"
+                          allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture"
+                          loading="lazy"
+                          title={`Play ${track.name}`}
+                        />
+                      </li>
+                    )}
+                  </Fragment>
+                ))}
+              </ol>
             </div>
           </div>
-          <div className="album-sources">
-            <h4>{lang === "zh" ? "资料来源" : "Sources"}</h4>
-            {album.sourceUrls.map((url) => (
-              <a key={url} href={url} target="_blank" rel="noreferrer">
-                {new URL(url).hostname}
-              </a>
-            ))}
-          </div>
         </section>
-        <section className="song-list-panel">
-          <h3>{lang === "zh" ? "歌曲列表" : "Track list"}</h3>
-          <ol>
-            {album.tracks.map((track) => (
-              <li key={track}>
-                <span>{track}</span>
-                <div>
-                  <a href={`https://music.apple.com/us/search?term=${encodeURIComponent(`${album.title} ${track}`)}`} target="_blank" rel="noreferrer">
-                    Apple
-                  </a>
-                  <a href={`https://open.spotify.com/search/${encodeURIComponent(`${album.title} ${track}`)}`} target="_blank" rel="noreferrer">
-                    Spotify
-                  </a>
-                </div>
-              </li>
-            ))}
-          </ol>
-        </section>
+
       </div>
     </div>
   );
@@ -945,108 +1039,167 @@ function ArchiveIssue({ lang }: { lang: Lang }) {
   );
 }
 
-function AboutIssue() {
-  const [wobble, setWobble] = useState(false);
-
-  function handleClick() {
-    if (wobble) return;
-    setWobble(true);
-    setTimeout(() => setWobble(false), 600);
-  }
+function AboutIssue({ lang }: { lang: Lang }) {
+  const [flipped, setFlipped] = useState(false);
 
   const emailParts = ["2314869561a", "gmail.com"];
 
   return (
     <section className="issue issue-about">
-      <div
-        className={`id-card ${wobble ? "id-card--wobble" : ""}`}
-        onClick={handleClick}
-      >
-        {/* Header */}
-        <div className="id-card__header">
-          <span>loading / eiddie personal branding</span>
-          <span>version 001</span>
+      <div className={`id-card-flipper ${flipped ? "id-card-flipper--flipped" : ""}`} onClick={() => setFlipped(f => !f)}>
+        {/* Front */}
+        <div className="id-card id-card--front">
+          <div className="id-card__header">
+            <span>loading / eiddie personal branding</span>
+            <span>version 001</span>
+          </div>
+
+          <div className="id-card__body">
+            <div className="id-card__portrait">
+              <img src="/assets/heroes/profile.png" alt="Ye" />
+            </div>
+
+            <div className="id-card__info">
+              <h2 className="id-card__title">IDENTIFICATION CARD</h2>
+
+              <div className="id-card__row">
+                <span className="id-card__label">[name]</span>
+                <span className="id-card__value">EIDDIE</span>
+                <span className="id-card__label">[type]</span>
+                <span className="id-card__value">Fan Tribute</span>
+              </div>
+
+              <div className="id-card__divider" />
+
+              <div className="id-card__row">
+                <span className="id-card__label">[favorite era]</span>
+                <span className="id-card__value">The College Dropout</span>
+              </div>
+
+              <div className="id-card__divider" />
+
+              <div className="id-card__row">
+                <span className="id-card__label">[email]</span>
+                <span className="id-card__value">
+                  <a href={`mailto:${emailParts[0]}@${emailParts[1]}`}>
+                    {emailParts[0]} [at] {emailParts[1]}
+                  </a>
+                </span>
+                <span className="id-card__label">[github]</span>
+                <span className="id-card__value">
+                  <a href="https://github.com/eiddiedev" target="_blank" rel="noreferrer">
+                    eiddiedev
+                  </a>
+                </span>
+              </div>
+
+              <div className="id-card__row">
+                <span className="id-card__label">[twitter]</span>
+                <span className="id-card__value">
+                  <a href="https://twitter.com/10jm411336" target="_blank" rel="noreferrer">@10jm411336</a>
+                </span>
+                <span className="id-card__label">[douyin]</span>
+                <span className="id-card__value">
+                  <a href="https://www.douyin.com/user/jamalmusiala_10" target="_blank" rel="noreferrer">jamalmusiala_10</a>
+                </span>
+              </div>
+
+              <div className="id-card__signature">
+                <span>Signature:</span>
+                <img src="/assets/heroes/sign.png" alt="" className="id-card__sig-img" />
+              </div>
+            </div>
+          </div>
+
+          <div className="id-card__footer">
+            <div className="id-card__barcode" aria-hidden="true">
+              {Array.from({ length: 40 }, (_, i) => (
+                <span key={i} className={`bar bar--${i % 3 === 0 ? "thick" : i % 2 === 0 ? "medium" : "thin"}`} />
+              ))}
+            </div>
+            <div className="id-card__dates">
+              <div className="id-card__date">
+                <span className="id-card__label">[issue date]</span>
+                <span className="id-card__value">05/10/2025</span>
+              </div>
+              <div className="id-card__date">
+                <span className="id-card__label">[last update]</span>
+                <span className="id-card__value">05/12/2026</span>
+              </div>
+            </div>
+          </div>
         </div>
 
-        <div className="id-card__body">
-          {/* Left: portrait */}
-          <div className="id-card__portrait">
-            <img src="/assets/heroes/profile.png" alt="Ye" />
+        {/* Back */}
+        <div className="id-card id-card--back">
+          <div className="id-card__header">
+            <span>loading / eiddie personal branding</span>
+            <span>version 001</span>
           </div>
 
-          {/* Right: info fields */}
-          <div className="id-card__info">
-            <h2 className="id-card__title">IDENTIFICATION CARD</h2>
+          <div className="id-card-back__content">
+            <h2 className="id-card-back__title">{lang === "zh" ? "致谢与声明" : "ACKNOWLEDGEMENTS & DISCLAIMER"}</h2>
 
-            <div className="id-card__row">
-              <span className="id-card__label">[name]</span>
-              <span className="id-card__value">EIDDIE</span>
-              <span className="id-card__label">[type]</span>
-              <span className="id-card__value">Fan Tribute</span>
+            <div className="id-card-back__section">
+              <h3>{lang === "zh" ? "致谢" : "Acknowledgements"}</h3>
+              <p>
+                {lang === "zh"
+                  ? "YeVerse 是一个非官方的粉丝致敬网站，仅用于视觉设计、交互叙事与档案策展的研究与展示。本站不托管任何音频文件。"
+                  : "YeVerse is an unofficial fan tribute website for visual design, interaction narrative, and archival curation. This site does not host any audio."}
+              </p>
             </div>
 
-            <div className="id-card__divider" />
-
-            <div className="id-card__row">
-              <span className="id-card__label">[built with]</span>
-              <span className="id-card__value">React · TypeScript · Three.js</span>
-            </div>
-            <div className="id-card__row">
-              <span className="id-card__label">[data sources]</span>
-              <span className="id-card__value">Wikipedia · Fandom · Apple Music · Spotify</span>
+            <div className="id-card-back__section">
+              <h3>{lang === "zh" ? "信息来源" : "Sources"}</h3>
+              <p>
+                {lang === "zh"
+                  ? "本站内容参考：Wikipedia、Spotify、Apple Music、Metacritic、Pitchfork、Album of the Year、RateYourMusic、Genius、Kanye West Fandom Wiki。所有素材版权归其各自所有者。"
+                  : "Content sourced from: Wikipedia, Spotify, Apple Music, Metacritic, Pitchfork, Album of the Year, RateYourMusic, Genius, Kanye West Fandom Wiki. All materials belong to their respective rights holders."}
+              </p>
             </div>
 
-            <div className="id-card__divider" />
-
-            <div className="id-card__row">
-              <span className="id-card__label">[email]</span>
-              <span className="id-card__value">
-                <a href={`mailto:${emailParts[0]}@${emailParts[1]}`}>
-                  {emailParts[0]} [at] {emailParts[1]}
-                </a>
-              </span>
-              <span className="id-card__label">[github]</span>
-              <span className="id-card__value">
-                <a href="https://github.com/eiddiedev" target="_blank" rel="noreferrer">
-                  eiddiedev
-                </a>
-              </span>
+            <div className="id-card-back__section">
+              <h3>{lang === "zh" ? "版权声明" : "Copyright"}</h3>
+              <p>
+                {lang === "zh"
+                  ? "如有任何内容侵犯了您的权益，请通过 GitHub Issues 或邮件联系，我们将在核实后立即删除。如有侵权必删。"
+                  : "If any content infringes your rights, please contact us via GitHub Issues or email. We will remove it promptly upon verification."}
+              </p>
             </div>
 
-            <div className="id-card__row">
-              <span className="id-card__label">[website]</span>
-              <span className="id-card__value">eiddiedev.github.io/YeVerse</span>
-            </div>
-
-            {/* Signature */}
-            <div className="id-card__signature">
-              <span>Signature:</span>
-              <img src="/assets/heroes/sign.png" alt="" className="id-card__sig-img" />
+            <div className="id-card-back__section">
+              <h3>{lang === "zh" ? "参与共建" : "Contribute"}</h3>
+              <p>
+                {lang === "zh"
+                  ? "如果你也是 Ye 的粉丝，欢迎前往 GitHub 提交 Issue 或 Pull Request，一起构建更好的 YeVerse！"
+                  : "If you're a Ye fan too, feel free to submit Issues or Pull Requests on our GitHub repo to help build a better YeVerse together!"}
+              </p>
+              <a className="id-card-back__gh-link" href="https://github.com/eiddiedev/YeVerse" target="_blank" rel="noreferrer">
+                github.com/eiddiedev/YeVerse
+              </a>
             </div>
           </div>
-        </div>
 
-        {/* Footer: barcode + dates */}
-        <div className="id-card__footer">
-          <div className="id-card__barcode" aria-hidden="true">
-            {Array.from({ length: 40 }, (_, i) => (
-              <span key={i} className={`bar bar--${i % 3 === 0 ? "thick" : i % 2 === 0 ? "medium" : "thin"}`} />
-            ))}
-          </div>
-          <div className="id-card__dates">
-            <div className="id-card__date">
-              <span className="id-card__label">[issue date]</span>
-              <span className="id-card__value">03/2025</span>
+          <div className="id-card__footer">
+            <div className="id-card__barcode" aria-hidden="true">
+              {Array.from({ length: 40 }, (_, i) => (
+                <span key={i} className={`bar bar--${i % 3 === 0 ? "thick" : i % 2 === 0 ? "medium" : "thin"}`} />
+              ))}
             </div>
-            <div className="id-card__date">
-              <span className="id-card__label">[last update]</span>
-              <span className="id-card__value">05/2026</span>
+            <div className="id-card__dates">
+              <div className="id-card__date">
+                <span className="id-card__label">[issue date]</span>
+                <span className="id-card__value">05/10/2025</span>
+              </div>
+              <div className="id-card__date">
+                <span className="id-card__label">[last update]</span>
+                <span className="id-card__value">05/12/2026</span>
+              </div>
             </div>
           </div>
         </div>
       </div>
 
-      {/* Disclaimer */}
       <p className="id-card__disclaimer">
         YeVerse is an unofficial fan tribute website prototype for visual design, interaction narrative, and archival curation. This site does not host audio. Music, cover art, trademarks, and related materials belong to their respective rights holders.
       </p>
@@ -1125,7 +1278,7 @@ export default function App() {
         )}
         {activeIssue === "yeworld" && <YeWorldIssue lang={lang} />}
         {activeIssue === "archive" && <ArchiveIssue lang={lang} />}
-        {activeIssue === "about" && <AboutIssue />}
+        {activeIssue === "about" && <AboutIssue lang={lang} />}
       </main>
       <TransitionOverlay
         albumId={transAlbumId}
