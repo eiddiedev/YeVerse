@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useRef, useState, type CSSProperties, type PointerEvent } from "react";
 import { ArrowUpRight, Globe2, Menu, X } from "lucide-react";
 import * as THREE from "three";
-import { albums, timelineBranches, type Album, type Lang, type TimelineBranch } from "./data";
+import { albums, timelineEras, type Album, type Lang, type TimelineEra } from "./data";
 
 const issueIds = ["hero", "timeline", "discography", "yeworld", "archive", "about"] as const;
 type IssueId = (typeof issueIds)[number];
@@ -206,76 +206,79 @@ function HeroIssue() {
   );
 }
 
-function TimelineIssue({
-  lang,
-  expandedBranch,
-  onExpand,
-  onAlbumJump,
-}: {
-  lang: Lang;
-  expandedBranch: string;
-  onExpand: (branchId: string) => void;
-  onAlbumJump: (albumId: string) => void;
-}) {
+function TimelineIssue({ lang, onAlbumJump }: { lang: Lang; onAlbumJump: (albumId: string) => void }) {
+  const scrollRef = useRef<HTMLDivElement | null>(null);
+
+  function getEraCover(era: TimelineEra): string | undefined {
+    if (!era.albumIds?.length) return undefined;
+    const album = albums.find((a) => a.id === era.albumIds![0]);
+    return album?.cover;
+  }
+
+  function getEraColor(era: TimelineEra): string {
+    if (!era.albumIds?.length) return "#1a1a1a";
+    const album = albums.find((a) => a.id === era.albumIds![0]);
+    return album?.palette.primary ?? "#1a1a1a";
+  }
+
   return (
     <section className="issue issue-timeline">
-      <div className="issue-heading compact">
+      <div className="timeline-header">
         <p className="eyebrow">TIMELINE</p>
+        <h2>{lang === "zh" ? "Ye 的成长之路" : "The Path of Ye"}</h2>
       </div>
-      <div className="timeline-board">
-        <div className="timeline-axis" aria-hidden="true" />
-        {timelineBranches.map((branch) => (
-          <TimelineBranchCard
-            key={branch.id}
-            branch={branch}
-            lang={lang}
-            expanded={expandedBranch === branch.id}
-            onExpand={onExpand}
-            onAlbumJump={onAlbumJump}
-          />
-        ))}
+      <div className="timeline-scroll" ref={scrollRef}>
+        <div className="timeline-line" aria-hidden="true" />
+        <div className="timeline-track">
+          {timelineEras.map((era, index) => {
+            const cover = getEraCover(era);
+            const color = getEraColor(era);
+            const firstAlbumId = era.albumIds?.[0];
+            return (
+              <article
+                key={era.id}
+                className="timeline-era"
+                style={{ "--era-color": color } as CSSProperties}
+              >
+                <div className="era-image">
+                  {cover ? (
+                    <img
+                      src={cover}
+                      alt={text(era.title, lang)}
+                      onClick={() => firstAlbumId && onAlbumJump(firstAlbumId)}
+                      className={firstAlbumId ? "clickable" : ""}
+                    />
+                  ) : (
+                    <div className="era-image-placeholder" />
+                  )}
+                  <span className="era-index">{String(index + 1).padStart(2, "0")}</span>
+                </div>
+                <div className="era-marker">
+                  <span className="era-dot" />
+                  <span className="era-range">{era.range}</span>
+                </div>
+                <div className="era-text">
+                  <h3>{text(era.title, lang)}</h3>
+                  <p>{text(era.body, lang)}</p>
+                  {era.albumIds && era.albumIds.length > 1 && (
+                    <div className="era-albums">
+                      {era.albumIds.map((id: string) => {
+                        const album = albums.find((a) => a.id === id);
+                        return album ? (
+                          <button key={id} className="era-album-link" onClick={() => onAlbumJump(id)}>
+                            <span>{album.title}</span>
+                          </button>
+                        ) : null;
+                      })}
+                    </div>
+                  )}
+                </div>
+              </article>
+            );
+          })}
+        </div>
       </div>
     </section>
-  );
-}
-
-function TimelineBranchCard({
-  branch,
-  lang,
-  expanded,
-  onExpand,
-  onAlbumJump,
-}: {
-  branch: TimelineBranch;
-  lang: Lang;
-  expanded: boolean;
-  onExpand: (branchId: string) => void;
-  onAlbumJump: (albumId: string) => void;
-}) {
-  return (
-    <article className={`timeline-branch ${branch.side} ${expanded ? "expanded" : ""}`}>
-      <button className="branch-trigger" onClick={() => onExpand(branch.id)}>
-        <span>{branch.range}</span>
-        <strong>{text(branch.title, lang)}</strong>
-        <small>{text(branch.summary, lang)}</small>
-      </button>
-      {expanded && (
-        <div className="branch-nodes">
-          {branch.nodes.map((node) => (
-            <button
-              key={`${branch.id}-${node.year}-${node.title.en}`}
-              className={node.albumId ? "node-link" : ""}
-              onClick={() => node.albumId && onAlbumJump(node.albumId)}
-              disabled={!node.albumId}
-            >
-              <span>{node.year}</span>
-              <strong>{text(node.title, lang)}</strong>
-              <small>{text(node.body, lang)}</small>
-            </button>
-          ))}
-        </div>
-      )}
-    </article>
   );
 }
 
@@ -914,7 +917,6 @@ export default function App() {
   const [drawerOpen, setDrawerOpen] = useState(false);
   const [selectedAlbum, setSelectedAlbum] = useState(albums[0]);
   const [openAlbum, setOpenAlbum] = useState<Album | null>(null);
-  const [expandedBranch, setExpandedBranch] = useState(timelineBranches[0].id);
   const [hoveredAlbumIndex, setHoveredAlbumIndex] = useState<number | null>(null);
 
   const selectedIndex = useMemo(() => albums.findIndex((album) => album.id === selectedAlbum.id) + 1, [selectedAlbum.id]);
@@ -953,12 +955,7 @@ export default function App() {
       <main className="issue-shell">
         {activeIssue === "hero" && <HeroIssue />}
         {activeIssue === "timeline" && (
-          <TimelineIssue
-            lang={lang}
-            expandedBranch={expandedBranch}
-            onExpand={(branchId) => setExpandedBranch((current) => (current === branchId ? "" : branchId))}
-            onAlbumJump={jumpToAlbum}
-          />
+          <TimelineIssue lang={lang} onAlbumJump={jumpToAlbum} />
         )}
         {activeIssue === "discography" && (
           <DiscographyIssue

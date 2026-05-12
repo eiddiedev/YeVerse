@@ -2,6 +2,14 @@ export type Lang = "zh" | "en";
 export type AlbumType = "solo" | "collab" | "compilation";
 export type LocalizedText = Record<Lang, string>;
 
+export interface TimelineEra {
+  id: string;
+  range: string;
+  title: LocalizedText;
+  body: LocalizedText;
+  albumIds?: string[];
+}
+
 export interface Album {
   id: string;
   title: string;
@@ -20,29 +28,6 @@ export interface Album {
   links: { apple: string; spotify: string };
   sourceUrls: string[];
   spineDesign?: string;
-}
-
-export interface TimelineEvent {
-  year: string;
-  title: LocalizedText;
-  body: LocalizedText;
-  albumId?: string;
-  category: "life" | "music" | "fashion" | "culture";
-}
-
-export interface TimelineBranch {
-  id: string;
-  range: string;
-  category: "life" | "music" | "fashion" | "culture";
-  title: LocalizedText;
-  summary: LocalizedText;
-  side: "left" | "right";
-  nodes: Array<{
-    year: string;
-    title: LocalizedText;
-    body: LocalizedText;
-    albumId?: string;
-  }>;
 }
 
 export const copy = {
@@ -402,335 +387,105 @@ export const albums: Album[] = [
     spineDesign: "BULLY",
   },
 ];
-export const timeline: TimelineEvent[] = [
-  {
-    year: "1977",
-    category: "life",
-    title: { zh: "出生于亚特兰大，成长于芝加哥", en: "Born in Atlanta, raised in Chicago" },
-    body: { zh: "芝加哥成为 Ye 早期灵魂采样、城市叙事和自我教育神话的重要底色。", en: "Chicago becomes the ground tone for soul samples, city narratives, and self-education." },
-  },
-  {
-    year: "2004",
-    category: "music",
-    albumId: "college-dropout",
-    title: { zh: "The College Dropout 打开入口", en: "The College Dropout opens the gate" },
-    body: { zh: "制作人走到麦克风前，个人神话正式成形。点击进入专辑厅。", en: "The producer steps to the microphone and the self-myth takes form. Open the album chamber." },
-  },
-  {
-    year: "2007",
-    category: "music",
-    albumId: "graduation",
-    title: { zh: "竞技场尺度的 Graduation", en: "Graduation reaches arena scale" },
-    body: { zh: "电子化、体育馆副歌和视觉艺术合作，把流行说唱推向更亮的空间。", en: "Electronics, stadium hooks, and visual-art collaboration move rap toward a brighter scale." },
-  },
-  {
-    year: "2008",
-    category: "music",
-    albumId: "808s-heartbreak",
-    title: { zh: "808s 改写情绪语法", en: "808s rewrites emotional grammar" },
-    body: { zh: "Auto-Tune 与极简鼓机让脆弱感成为未来流行说唱的核心材料。", en: "Auto-Tune and minimal drums turn vulnerability into a future-facing rap material." },
-  },
-  {
-    year: "2010",
-    category: "music",
-    albumId: "mbdtf",
-    title: { zh: "红黑歌剧 MBDTF", en: "The red-black opera of MBDTF" },
-    body: { zh: "奢华制作、悔罪叙事与自我审判形成 YeVerse 的中心大厅。", en: "Luxury production, confession, and self-judgment become a central hall in YeVerse." },
-  },
-  {
-    year: "2013",
-    category: "music",
-    albumId: "yeezus",
-    title: { zh: "Yeezus 的工业极简", en: "Yeezus and industrial minimalism" },
-    body: { zh: "一张几乎拒绝装饰的专辑，把声音和包装都推向冷硬边缘。", en: "An album that rejects decoration, pushing sound and packaging toward a cold edge." },
-  },
-  {
-    year: "2015-2016",
-    category: "fashion",
-    title: { zh: "Yeezy 进入时尚系统", en: "Yeezy enters the fashion system" },
-    body: { zh: "鞋履、廓形、秀场和大众消费共同构成 YeWorld 的时尚支线。", en: "Footwear, silhouettes, runway, and mass consumption form the fashion branch of YeWorld." },
-  },
-  {
-    year: "2018",
-    category: "music",
-    albumId: "kids-see-ghosts",
-    title: { zh: "怀俄明七首歌时期", en: "The Wyoming seven-track period" },
-    body: { zh: "Ye 与 Kids See Ghosts 让短篇幅、治疗感和粗粝制作形成一组并置。", en: "Ye and Kids See Ghosts pair short form, healing language, and rough-hewn production." },
-  },
-  {
-    year: "2021",
-    category: "music",
-    albumId: "donda",
-    title: { zh: "Donda 的黑色公共仪式", en: "Donda as black public ritual" },
-    body: { zh: "体育场试听与空白封面把专辑变成公开追思和精神建筑。", en: "Stadium listening events and a blank cover turn the album into public remembrance." },
-  },
-  {
-    year: "2024",
-    category: "music",
-    albumId: "vultures-1",
-    title: { zh: "¥$ 时代开启", en: "The ¥$ era begins" },
-    body: { zh: "与 Ty Dolla Sign 的合作把黑色低频、俱乐部质感和碎片化发行放到前台。", en: "The Ty Dolla Sign collaboration foregrounds black low-end, club texture, and fragmented release." },
-  },
-];
 
-export const timelineBranches: TimelineBranch[] = [
+export const timelineEras: TimelineEra[] = [
   {
-    id: "origins",
-    range: "1977-1999",
-    category: "life",
-    side: "left",
-    title: { zh: "Origins", en: "Origins" },
-    summary: {
-      zh: "从亚特兰大到芝加哥，家庭、教育和城市声音塑造了最早的坐标。",
-      en: "From Atlanta to Chicago, family, education, and city sound formed the earliest coordinates.",
+    id: "early-life",
+    range: "1977 – 2003",
+    title: { zh: "Early Life", en: "Early Life" },
+    body: {
+      zh: "出生于亚特兰大，成长于芝加哥。母亲 Donda West 是英语教授，父亲 Ray West 是前黑豹党成员。10 岁随母亲赴南京担任富布赖特学者。少年时期开始写诗、说唱、制作 beats。师从制作人 No I.D.，进入芝加哥美国艺术学院后转入芝加哥州立大学，20 岁退学追求音乐。2002 年车祸下颌碎裂，戴着钢丝录制 Through the Wire。",
+      en: "Born in Atlanta, raised in Chicago. Mother Donda West was an English professor; father Ray West a former Black Panther. At 10, moved to Nanjing where his mother taught as a Fulbright Scholar. Started rapping and producing as a teenager. Mentored by No I.D., attended the American Academy of Art, then dropped out of Chicago State at 20. In 2002, a car crash shattered his jaw — he recorded 'Through the Wire' with it wired shut.",
     },
-    nodes: [
-      {
-        year: "1977",
-        title: { zh: "出生于亚特兰大", en: "Born in Atlanta" },
-        body: { zh: "随后成长于芝加哥，母亲 Donda West 的教育背景成为核心精神线索。", en: "He later grew up in Chicago, with Donda West's educational presence becoming a core spiritual line." },
-      },
-      {
-        year: "1990s",
-        title: { zh: "制作人与采样语言", en: "Producer language" },
-        body: { zh: "灵魂采样、鼓组和本地制作网络成为进入主流之前的地下训练。", en: "Soul samples, drums, and local production networks became the underground training before the mainstream." },
-      },
-      {
-        year: "1997",
-        title: { zh: "短暂大学经历", en: "Brief college period" },
-        body: { zh: "退学叙事后来被转化为第一张专辑的核心隐喻。", en: "The dropout narrative later became the central metaphor of the debut album." },
-      },
-    ],
   },
   {
-    id: "producer-artist",
-    range: "2000-2005",
-    category: "music",
-    side: "right",
-    title: { zh: "Producer to Artist", en: "Producer to Artist" },
-    summary: {
-      zh: "从 Roc-A-Fella 制作人走向麦克风前，建立个人叙事。",
-      en: "The Roc-A-Fella producer moved to the microphone and built a first-person mythology.",
+    id: "college-dropout",
+    range: "2004 – 2005",
+    title: { zh: "The College Dropout Era", en: "The College Dropout Era" },
+    body: {
+      zh: "从 Roc-A-Fella 制作人转型为说唱歌手。首张专辑以灵魂采样、校园辍学图腾和阶层叙事构建完整世界观，获 10 项格莱美提名。创立 GOOD Music 厂牌。Late Registration 以管弦乐扩展野心，首周登顶 Billboard 200。",
+      en: "Transformed from Roc-A-Fella producer to rapper. The debut used soul samples, dropout iconography, and class narratives to build a complete world — earning 10 Grammy nominations. Founded GOOD Music. Late Registration expanded the scope with orchestration, debuting at No. 1 on Billboard 200.",
     },
-    nodes: [
-      {
-        year: "2001",
-        title: { zh: "制作声名扩大", en: "Production profile expands" },
-        body: { zh: "为 Jay-Z 等艺术家制作让他的采样审美进入主流视野。", en: "Production for artists including Jay-Z brought his sample language into mainstream view." },
-      },
-      {
-        year: "2002",
-        title: { zh: "车祸与 Through the Wire", en: "Crash and Through the Wire" },
-        body: { zh: "身体创伤被转化为职业转折点，也强化了自我神话。", en: "Physical trauma became a career pivot and intensified the self-myth." },
-      },
-      {
-        year: "2004",
-        albumId: "college-dropout",
-        title: { zh: "The College Dropout", en: "The College Dropout" },
-        body: { zh: "首张专辑让制作人身份正式变成艺术家身份。", en: "The debut album turned the producer identity into an artist identity." },
-      },
-      {
-        year: "2005",
-        albumId: "late-registration",
-        title: { zh: "Late Registration", en: "Late Registration" },
-        body: { zh: "管弦乐和灵魂乐扩展了早期世界观。", en: "Orchestration and soul expanded the early world." },
-      },
-    ],
+    albumIds: ["college-dropout", "late-registration"],
   },
   {
     id: "pop-expansion",
     range: "2007",
-    category: "music",
-    side: "left",
     title: { zh: "Pop Expansion", en: "Pop Expansion" },
-    summary: {
-      zh: "电子化、体育馆尺度和视觉艺术合作把 Ye 推入全球流行中心。",
-      en: "Electronics, arena scale, and visual-art collaboration moved Ye into the pop center.",
+    body: {
+      zh: "电子合成器、竞技场副歌与村上隆视觉合作把 Ye 推入全球流行中心。Graduation 首周卖出 95.7 万张。同年 11 月母亲 Donda West 去世，改变了之后所有创作的底色。",
+      en: "Synths, stadium hooks, and the Takashi Murakami collaboration pushed Ye into the pop center. Graduation sold 957,000 copies in its first week. In November, his mother Donda West passed away — coloring everything that followed.",
     },
-    nodes: [
-      {
-        year: "2007",
-        albumId: "graduation",
-        title: { zh: "Graduation", en: "Graduation" },
-        body: { zh: "竞技场副歌、合成器与村上隆视觉定义了明亮的扩张期。", en: "Arena hooks, synths, and Takashi Murakami imagery defined the bright expansion era." },
-      },
-      {
-        year: "2007",
-        title: { zh: "流行说唱权力转移", en: "A rap-pop power shift" },
-        body: { zh: "这阶段让更实验、更设计化的说唱表达进入主流中心。", en: "This period pushed a more experimental, designed rap language into the mainstream center." },
-      },
-    ],
+    albumIds: ["graduation"],
   },
   {
     id: "emotional-minimalism",
-    range: "2008-2009",
-    category: "music",
-    side: "right",
+    range: "2008 – 2009",
     title: { zh: "Emotional Minimalism", en: "Emotional Minimalism" },
-    summary: {
-      zh: "悲伤、Auto-Tune 和极简鼓机把脆弱感变成未来声音。",
-      en: "Grief, Auto-Tune, and minimal drum machines made vulnerability sound futuristic.",
+    body: {
+      zh: "极简鼓机、Auto-Tune 与哀悼情绪构成冰冷空间。808s & Heartbreak 把脆弱感变成未来十年流行说唱的核心语法。2009 年 VMA 事件让公众形象进入更复杂的媒体周期。",
+      en: "Minimal drum machines, Auto-Tune, and grief created a cold room. 808s & Heartbreak made vulnerability a core grammar for the next decade of rap. The 2009 VMAs incident pushed his public image into a more complex media cycle.",
     },
-    nodes: [
-      {
-        year: "2008",
-        albumId: "808s-heartbreak",
-        title: { zh: "808s & Heartbreak", en: "808s & Heartbreak" },
-        body: { zh: "情绪、机械节拍和空旷声场成为后来十多年流行说唱的重要语法。", en: "Emotion, machine rhythm, and empty space became a grammar for the following decade." },
-      },
-      {
-        year: "2009",
-        title: { zh: "公共形象转折", en: "Public-image turn" },
-        body: { zh: "公众事件让艺术家形象进入更复杂的媒体周期。", en: "Public events pushed the artist image into a more complex media cycle." },
-      },
-    ],
+    albumIds: ["808s-heartbreak"],
   },
   {
-    id: "luxury-return",
-    range: "2010-2012",
-    category: "music",
-    side: "left",
+    id: "mbdtf-era",
+    range: "2010 – 2012",
     title: { zh: "Luxury / Exile / Return", en: "Luxury / Exile / Return" },
-    summary: {
-      zh: "红黑奢华、合作权力和厂牌宣言构成宏大回归。",
-      en: "Red-black luxury, collaborative power, and label statements formed a grand return.",
+    body: {
+      zh: "奢华、悔罪、狂妄与自我审判汇成巴洛克式说唱歌剧。MBDTF 被广泛认为是他最伟大的作品。与 Jay-Z 合作 Watch the Throne 建造金色纪念碑。GOOD Music 发行 Cruel Summer 合辑。Coachella 演出被评为史上最伟大的嘻哈演出之一。",
+      en: "Luxury, confession, arrogance, and self-trial converged into a baroque rap opera. MBDTF is widely considered his masterwork. Watch the Throne with Jay-Z became a gold monument. The GOOD Music compilation Cruel Summer rounded out the era. His Coachella set was called one of the greatest hip-hop performances ever.",
     },
-    nodes: [
-      {
-        year: "2010",
-        albumId: "mbdtf",
-        title: { zh: "MBDTF", en: "MBDTF" },
-        body: { zh: "悔罪、狂妄、奢华制作被压缩成中心歌剧。", en: "Confession, arrogance, and luxury production compressed into a central opera." },
-      },
-      {
-        year: "2011",
-        albumId: "watch-the-throne",
-        title: { zh: "Watch the Throne", en: "Watch the Throne" },
-        body: { zh: "与 Jay-Z 的合作把权力叙事做成金色纪念碑。", en: "The Jay-Z collaboration became a gold monument to power narratives." },
-      },
-      {
-        year: "2012",
-        albumId: "cruel-summer",
-        title: { zh: "Cruel Summer", en: "Cruel Summer" },
-        body: { zh: "GOOD Music 的厂牌合辑成为这个时期的支线档案。", en: "The GOOD Music compilation became a branch archive of the period." },
-      },
-    ],
+    albumIds: ["mbdtf", "watch-the-throne", "cruel-summer"],
   },
   {
     id: "industrial-turn",
-    range: "2013-2016",
-    category: "music",
-    side: "right",
+    range: "2013 – 2016",
     title: { zh: "Industrial Turn", en: "Industrial Turn" },
-    summary: {
-      zh: "工业噪音、极简包装和流媒体拼贴让作品更像系统实验。",
-      en: "Industrial noise, minimal packaging, and streaming collage turned the work into system experiments.",
+    body: {
+      zh: "工业噪音、极简封面、刺耳合成器和反流行结构。Yeezus 像一块冷硬金属板。The Life of Pablo 是流媒体时代的可更新拼贴——福音、家庭、时装周和未完成感共存，像一块永远在改稿的橙色公告板。Saint Pablo Tour 悬浮舞台后来因健康原因取消。",
+      en: "Industrial noise, minimal packaging, abrasive synths, and anti-pop structure. Yeezus was a cold metal plate. The Life of Pablo was a streaming-era updateable collage — gospel, family, fashion week, and intentional incompletion on an orange board still being revised. The Saint Pablo Tour's suspended stage was later cancelled for health reasons.",
     },
-    nodes: [
-      {
-        year: "2013",
-        albumId: "yeezus",
-        title: { zh: "Yeezus", en: "Yeezus" },
-        body: { zh: "没有传统封面，只有冷硬材料和刺耳声音。", en: "No traditional cover, just hard material and abrasive sound." },
-      },
-      {
-        year: "2016",
-        albumId: "life-of-pablo",
-        title: { zh: "The Life of Pablo", en: "The Life of Pablo" },
-        body: { zh: "流媒体时代的可更新专辑，像持续改稿的橙色公告板。", en: "A streaming-era updateable album, like an orange board under constant revision." },
-      },
-    ],
+    albumIds: ["yeezus", "life-of-pablo"],
   },
   {
-    id: "yeezy-fashion",
-    range: "2015-2020",
-    category: "fashion",
-    side: "left",
-    title: { zh: "Yeezy / Fashion", en: "Yeezy / Fashion" },
-    summary: {
-      zh: "鞋履、廓形、秀场和大众消费让 YeWorld 进入时尚系统。",
-      en: "Footwear, silhouettes, runway, and mass consumption moved YeWorld into the fashion system.",
+    id: "wyoming-sessions",
+    range: "2018",
+    title: { zh: "Wyoming Sessions", en: "Wyoming Sessions" },
+    body: {
+      zh: "在怀俄明州杰克逊霍尔连续五周发行五张专辑。Ye 以七首歌的山地独白压缩自画像。Kids See Ghosts 与 Kid Cudi 完成摇滚、迷幻与动画视觉的治愈仪式。",
+      en: "Five albums released in consecutive weeks from Jackson Hole, Wyoming. Ye compressed his self-portrait into seven mountain songs. Kids See Ghosts with Kid Cudi was a healing ritual of rock, psychedelia, and animated imagery.",
     },
-    nodes: [
-      {
-        year: "2015",
-        title: { zh: "Yeezy Season", en: "Yeezy Season" },
-        body: { zh: "秀场、色调和剪影建立出反乌托邦式服装语汇。", en: "Runway, tones, and silhouettes built a dystopian clothing language." },
-      },
-      {
-        year: "2018",
-        albumId: "ye",
-        title: { zh: "Wyoming period", en: "Wyoming period" },
-        body: { zh: "音乐、私人叙事和山地空间短暂收缩为七首歌。", en: "Music, private narrative, and mountain space compressed into seven songs." },
-      },
-      {
-        year: "2018",
-        albumId: "kids-see-ghosts",
-        title: { zh: "Kids See Ghosts", en: "Kids See Ghosts" },
-        body: { zh: "与 Kid Cudi 的合作将治疗感、摇滚和动画视觉并置。", en: "The Kid Cudi collaboration paired healing, rock, and animated imagery." },
-      },
-    ],
+    albumIds: ["ye", "kids-see-ghosts"],
   },
   {
     id: "faith-donda",
-    range: "2019-2022",
-    category: "culture",
-    side: "right",
+    range: "2019 – 2022",
     title: { zh: "Faith / Donda", en: "Faith / Donda" },
-    summary: {
-      zh: "信仰语言、母亲记忆和体育场仪式把专辑变成公共空间。",
-      en: "Faith language, maternal memory, and stadium ritual turned albums into public space.",
+    body: {
+      zh: "福音转向成为正式声明。Sunday Service 周日礼拜成为公共仪式。Donda 以母亲之名命名——体育场试听、空白封面和祈祷构成黑色纪念碑。Donda 2 通过 Stem Player 发行，保留了未完成的状态。",
+      en: "The gospel turn became a formal statement. Sunday Service became a public ritual. Donda, named for his mother, was a black monument built from stadium listening events, a blank cover, and prayer. Donda 2 was issued through Stem Player, retaining its unfinished state.",
     },
-    nodes: [
-      {
-        year: "2019",
-        albumId: "jesus-is-king",
-        title: { zh: "Jesus Is King", en: "Jesus Is King" },
-        body: { zh: "福音转向成为正式声明。", en: "The gospel turn became a formal statement." },
-      },
-      {
-        year: "2021",
-        albumId: "donda",
-        title: { zh: "Donda", en: "Donda" },
-        body: { zh: "黑色封面、体育场试听和母亲之名构成公共追思。", en: "A black cover, stadium listening, and his mother's name formed public remembrance." },
-      },
-      {
-        year: "2022",
-        albumId: "donda-2",
-        title: { zh: "Donda 2", en: "Donda 2" },
-        body: { zh: "特殊发行状态被保留为 YeVerse 中的半开放房间。", en: "Its special release status remains a half-open room inside YeVerse." },
-      },
-    ],
+    albumIds: ["jesus-is-king", "donda", "donda-2"],
   },
   {
     id: "ys-era",
-    range: "2024-2025",
-    category: "music",
-    side: "left",
+    range: "2024",
     title: { zh: "¥$ Era", en: "¥$ Era" },
-    summary: {
-      zh: "黑色低频、合作身份和碎片化发行构成新的晚近章节。",
-      en: "Black low-end, collaborative identity, and fragmented release form the recent chapter.",
+    body: {
+      zh: "与 Ty Dolla Sign 组成 ¥$ 双人组。Vultures 1 以黑色低频和俱乐部质感回归，首周登顶 Billboard 200——连续第 11 张冠军专辑。Vultures 2 延续夜色、低频与碎片化发行。",
+      en: "Formed the ¥$ duo with Ty Dolla Sign. Vultures 1 returned with black low-end and club texture, debuting at No. 1 on Billboard 200 — his 11th consecutive chart-topper. Vultures 2 continued through night tones and fragmented release.",
     },
-    nodes: [
-      {
-        year: "2024",
-        albumId: "vultures-1",
-        title: { zh: "Vultures 1", en: "Vultures 1" },
-        body: { zh: "Ye 与 Ty Dolla Sign 的 ¥$ 章节开场。", en: "The opening ¥$ chapter with Ty Dolla Sign." },
-      },
-      {
-        year: "2024",
-        albumId: "vultures-2",
-        title: { zh: "Vultures 2", en: "Vultures 2" },
-        body: { zh: "第二章继续夜色、低频与碎片化结构。", en: "The second chapter continues the night tone, low-end, and fragment structure." },
-      },
-      {
-        year: "2025",
-        albumId: "bully",
-        title: { zh: "Bully", en: "Bully" },
-        body: { zh: "作为近期阶段入口，保留后续校订空间。", en: "A recent-phase entry with room for future correction." },
-      },
-    ],
+    albumIds: ["vultures-1", "vultures-2"],
+  },
+  {
+    id: "bully",
+    range: "2025 – 2026",
+    title: { zh: "Bully", en: "Bully" },
+    body: {
+      zh: "新阶段的入口。Bully 经历了 AI 人声争议后重新录制，2026 年 3 月正式发行。SoFi Stadium 两场演唱会售罄，票房 3300 万美元——自 2021 年以来首次在洛杉矶演出。",
+      en: "An entry into a new phase. Bully went through AI vocal controversy before being re-recorded and officially released in March 2026. Two sold-out SoFi Stadium shows grossed $33 million — his first LA performances since 2021.",
+    },
+    albumIds: ["bully"],
   },
 ];
