@@ -2031,7 +2031,7 @@ a {
   font-weight: 900;
   letter-spacing: 0.04em;
   color: transparent;
-  background: linear-gradient(90deg, #f5f0e8 var(--load, 0%), #666 var(--load, 0%));
+  background: linear-gradient(90deg, #e8dcc8 var(--load, 0%), #666 var(--load, 0%));
   background-clip: text;
   -webkit-background-clip: text;
   transition: --load 120ms linear;
