@@ -1213,11 +1213,9 @@ function LoadingScreen({ onFadeOutDone }: { onFadeOutDone: () => void }) {
 
   useEffect(() => {
     const coverPaths = albums.map((a) => a.cover);
-    const heroPaths = albums.map((a) => a.heroImage ?? a.cover);
     const timelinePaths = Array.from({ length: 10 }, (_, i) => `/assets/${i + 1}.png`);
     const texturePaths = ["/assets/textures/black-paper-grain.jpeg", "/assets/textures/void-paper-wash.jpeg"];
-    const extraPaths = ["/assets/heroes/kanye-signature.png", "/assets/heroes/profile.png", "/assets/heroes/sign.png"];
-    const allPaths = [...new Set([...coverPaths, ...heroPaths, ...timelinePaths, ...texturePaths, ...extraPaths])];
+    const allPaths = [...new Set([...coverPaths, ...timelinePaths, ...texturePaths])];
 
     let loaded = 0;
     const total = allPaths.length;
