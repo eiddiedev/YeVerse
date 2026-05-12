@@ -2011,7 +2011,7 @@ a {
   display: flex;
   align-items: center;
   justify-content: center;
-  transition: opacity 600ms ease;
+  transition: opacity 300ms ease;
 }
 
 .loading-screen.fade-out {

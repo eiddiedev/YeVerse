@@ -1224,7 +1224,7 @@ function LoadingScreen({ onFadeOutDone }: { onFadeOutDone: () => void }) {
       loaded++;
       setProgress(Math.round((loaded / total) * 100));
       if (loaded >= total) {
-        setTimeout(() => setFadeOut(true), 400);
+        setTimeout(() => setFadeOut(true), 100);
       }
     }
 
@@ -1300,7 +1300,7 @@ export default function App() {
   return (
     <>
       {!loadingDone && <LoadingScreen onFadeOutDone={() => setLoadingDone(true)} />}
-      <div className="app" style={{ opacity: loadingDone ? 1 : 0, transition: "opacity 400ms ease" }}>
+      <div className="app" style={{ opacity: loadingDone ? 1 : 0, transition: "opacity 300ms ease" }}>
       <CustomCursor />
       <div className="grain" aria-hidden="true" />
       <IssueDrawer
