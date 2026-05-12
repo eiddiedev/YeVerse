@@ -1213,15 +1213,12 @@ function LoadingScreen({ onFadeOutDone }: { onFadeOutDone: () => void }) {
 
   useEffect(() => {
     const coverPaths = albums.map((a) => a.cover);
-    const heroPaths = albums.map((a) => a.heroImage ?? a.cover);
     const timelinePaths = Array.from({ length: 10 }, (_, i) => `/assets/${i + 1}.png`);
     const texturePaths = ["/assets/textures/black-paper-grain.jpeg", "/assets/textures/void-paper-wash.jpeg"];
-    const extraPaths = ["/assets/heroes/kanye-signature.png", "/assets/heroes/profile.png", "/assets/heroes/sign.png"];
-    const criticalPaths = [...new Set([...coverPaths, ...timelinePaths, ...texturePaths])];
-    const bgPaths = [...new Set([...heroPaths, ...extraPaths])].filter((p) => !criticalPaths.includes(p));
+    const allPaths = [...new Set([...coverPaths, ...timelinePaths, ...texturePaths])];
 
     let loaded = 0;
-    const total = criticalPaths.length;
+    const total = allPaths.length;
 
     function check() {
       loaded++;
@@ -1231,15 +1228,12 @@ function LoadingScreen({ onFadeOutDone }: { onFadeOutDone: () => void }) {
       }
     }
 
-    criticalPaths.forEach((src) => {
+    allPaths.forEach((src) => {
       const img = new Image();
       img.onload = check;
       img.onerror = check;
       img.src = src;
     });
-
-    // hero images preload in background, don't block loading screen
-    bgPaths.forEach((src) => { const img = new Image(); img.src = src; });
   }, []);
 
   function handleTransitionEnd() {
@@ -1267,6 +1261,13 @@ export default function App() {
   const [transPhase, setTransPhase] = useState<"idle" | "in" | "out">("idle");
   const pendingAlbumRef = useRef<Album | null>(null);
 
+  // preload hero images after loading screen is gone
+  useEffect(() => {
+    if (!loadingDone) return;
+    const heroPaths = albums.map((a) => a.heroImage ?? a.cover);
+    const extraPaths = ["/assets/heroes/kanye-signature.png", "/assets/heroes/profile.png", "/assets/heroes/sign.png"];
+    [...new Set([...heroPaths, ...extraPaths])].forEach((src) => { const img = new Image(); img.src = src; });
+  }, [loadingDone]);
 
   function navigate(issue: IssueId) {
     setActiveIssue(issue);
