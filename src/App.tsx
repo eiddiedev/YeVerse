@@ -870,43 +870,114 @@ function ArchiveIssue({ lang }: { lang: Lang }) {
 }
 
 function AboutIssue({ lang }: { lang: Lang }) {
+  const [wobble, setWobble] = useState(false);
+
+  function handleClick() {
+    if (wobble) return;
+    setWobble(true);
+    setTimeout(() => setWobble(false), 600);
+  }
+
+  const emailParts = ["2314869561a", "gmail.com"];
+
   return (
     <section className="issue issue-about">
-      <div className="about-title">
-        <p className="eyebrow">ABOUT / MADE BY EIDDIE</p>
+      <div
+        className={`id-card ${wobble ? "id-card--wobble" : ""}`}
+        onClick={handleClick}
+      >
+        {/* Header */}
+        <div className="id-card__header">
+          <span>{lang === "zh" ? "加载中 / EIDDIE 个人品牌" : "loading / eiddie personal branding"}</span>
+          <span>version 001</span>
+        </div>
+
+        <div className="id-card__body">
+          {/* Left: portrait / signature */}
+          <div className="id-card__portrait">
+            <img src="/assets/heroes/kanye-signature.png" alt="Ye signature" />
+          </div>
+
+          {/* Right: info fields */}
+          <div className="id-card__info">
+            <h2 className="id-card__title">IDENTIFICATION CARD</h2>
+
+            <div className="id-card__row">
+              <span className="id-card__label">[name]</span>
+              <span className="id-card__value">EIDDIE</span>
+              <span className="id-card__label">[type]</span>
+              <span className="id-card__value">
+                {lang === "zh" ? "粉丝致敬站" : "Fan Tribute"}
+              </span>
+            </div>
+
+            <div className="id-card__divider" />
+
+            <div className="id-card__row">
+              <span className="id-card__label">[built with]</span>
+              <span className="id-card__value">React · TypeScript · Three.js</span>
+            </div>
+            <div className="id-card__row">
+              <span className="id-card__label">[data sources]</span>
+              <span className="id-card__value">Wikipedia · Fandom · Apple Music · Spotify</span>
+            </div>
+
+            <div className="id-card__divider" />
+
+            <div className="id-card__row">
+              <span className="id-card__label">[email]</span>
+              <span className="id-card__value">
+                <a href={`mailto:${emailParts[0]}@${emailParts[1]}`}>
+                  {emailParts[0]} [at] {emailParts[1]}
+                </a>
+              </span>
+              <span className="id-card__label">[github]</span>
+              <span className="id-card__value">
+                <a href="https://github.com/eiddiedev" target="_blank" rel="noreferrer">
+                  eiddiedev
+                </a>
+              </span>
+            </div>
+
+            <div className="id-card__row">
+              <span className="id-card__label">[website]</span>
+              <span className="id-card__value">eiddiedev.github.io/YeVerse</span>
+            </div>
+
+            {/* Signature */}
+            <div className="id-card__signature">
+              <span>{lang === "zh" ? "签名:" : "Signature:"}</span>
+              <img src="/assets/heroes/kanye-signature.png" alt="" className="id-card__sig-img" />
+            </div>
+          </div>
+        </div>
+
+        {/* Footer: barcode + dates */}
+        <div className="id-card__footer">
+          <div className="id-card__barcode" aria-hidden="true">
+            {Array.from({ length: 40 }, (_, i) => (
+              <span key={i} className={`bar bar--${i % 3 === 0 ? "thick" : i % 2 === 0 ? "medium" : "thin"}`} />
+            ))}
+          </div>
+          <div className="id-card__dates">
+            <div className="id-card__date">
+              <span className="id-card__label">[issue date]</span>
+              <span className="id-card__value">03/2025</span>
+            </div>
+            <div className="id-card__date">
+              <span className="id-card__label">[last update]</span>
+              <span className="id-card__value">05/2026</span>
+            </div>
+          </div>
+        </div>
       </div>
-      <div className="about-grid">
-        <article>
-          <h3>{lang === "zh" ? "项目性质" : "Project"}</h3>
-          <p>
-            {lang === "zh"
-              ? "YeVerse 是一个非官方个人网站原型，用于视觉设计、交互叙事和资料策展实验。它不是 Ye、Kanye West、Yeezy、GOOD Music 或任何唱片公司/品牌的官方项目。"
-              : "YeVerse is an unofficial personal website prototype for visual design, interaction narrative, and archival curation. It is not affiliated with Ye, Kanye West, Yeezy, GOOD Music, or any label/brand."}
-          </p>
-        </article>
-        <article>
-          <h3>{lang === "zh" ? "版权与音频" : "Rights and audio"}</h3>
-          <p>
-            {lang === "zh"
-              ? "音乐、封面、商标、影像和相关素材版权归其各自权利方所有。本站不托管音频，只提供 Apple Music 和 Spotify 等外部平台搜索/跳转链接。"
-              : "Music, cover art, trademarks, video, and related materials belong to their respective rights holders. This site does not host audio and only links to external platforms such as Apple Music and Spotify."}
-          </p>
-        </article>
-        <article>
-          <h3>{lang === "zh" ? "资料来源" : "Sources"}</h3>
-          <p>
-            Wikipedia album discography, Kanye West Wiki/Fandom, Apple/iTunes public artwork search, official streaming platform metadata, and manually curated notes.
-          </p>
-        </article>
-        <article>
-          <h3>{lang === "zh" ? "联系方式" : "Contact"}</h3>
-          <p>
-            Email: <a href="mailto:2314869561a@gmail.com">2314869561a@gmail.com</a>
-            <br />
-            GitHub: <a href="https://github.com/eiddiedev" target="_blank" rel="noreferrer">eiddiedev</a>
-          </p>
-        </article>
-      </div>
+
+      {/* Disclaimer */}
+      <p className="id-card__disclaimer">
+        {lang === "zh"
+          ? "YeVerse 是一个非官方粉丝致敬网站原型，用于视觉设计、交互叙事和资料策展实验。本站不托管音频，所有音乐、封面、商标及素材版权归其各自权利方所有。"
+          : "YeVerse is an unofficial fan tribute website prototype for visual design, interaction narrative, and archival curation. This site does not host audio. Music, cover art, trademarks, and related materials belong to their respective rights holders."}
+      </p>
     </section>
   );
 }

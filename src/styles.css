@@ -1105,8 +1105,7 @@ a {
   width: min(880px, 100%);
 }
 
-.archive-void h2,
-.about-title h2 {
+.archive-void h2 {
   margin: 0;
   font-family: Georgia, "Times New Roman", serif;
   font-size: clamp(42px, 7vw, 104px);
@@ -1125,43 +1124,217 @@ a {
 .issue-about {
   overflow-y: auto;
   background: #040404;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 32px;
+  padding: 48px 24px 80px;
 }
 
-.about-title {
-  max-width: 760px;
+/* ── ID Card ── */
+.id-card {
+  width: min(720px, 92vw);
+  background: #ebe0ce;
+  border-radius: 14px;
+  padding: 28px 32px 20px;
+  cursor: pointer;
+  transition: transform 0.18s ease;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.45);
 }
 
-.about-grid {
-  display: grid;
-  grid-template-columns: repeat(2, minmax(260px, 1fr));
-  gap: 1px;
-  max-width: 1080px;
-  margin-top: 42px;
-  border: 1px solid rgba(255, 255, 255, 0.12);
+.id-card:active {
+  transform: scale(0.985);
 }
 
-.about-grid article {
-  min-height: 190px;
-  padding: 24px;
-  background: rgba(255, 255, 255, 0.035);
+.id-card--wobble {
+  animation: card-wobble 0.6s ease;
 }
 
-.about-grid h3 {
+@keyframes card-wobble {
+  0%   { transform: rotate(0deg); }
+  15%  { transform: rotate(-1.8deg) scale(1.01); }
+  30%  { transform: rotate(1.4deg) scale(1.01); }
+  45%  { transform: rotate(-1deg); }
+  60%  { transform: rotate(0.6deg); }
+  75%  { transform: rotate(-0.3deg); }
+  100% { transform: rotate(0deg); }
+}
+
+/* Header */
+.id-card__header {
+  display: flex;
+  justify-content: space-between;
+  font-family: "Courier New", monospace;
+  font-size: 10px;
+  letter-spacing: 0.12em;
+  color: #1a1a1a;
+  margin-bottom: 12px;
+  text-transform: lowercase;
+}
+
+/* Body */
+.id-card__body {
+  display: flex;
+  gap: 28px;
+}
+
+.id-card__portrait {
+  flex: 0 0 160px;
+  display: flex;
+  align-items: flex-start;
+  justify-content: center;
+}
+
+.id-card__portrait img {
+  width: 100%;
+  max-height: 140px;
+  object-fit: contain;
+  filter: invert(1);
+  opacity: 0.82;
+}
+
+/* Info */
+.id-card__info {
+  flex: 1;
+  min-width: 0;
+}
+
+.id-card__title {
+  font-family: "Courier New", monospace;
+  font-size: clamp(16px, 3vw, 22px);
+  font-weight: 900;
+  letter-spacing: 0.18em;
+  color: #1a1a1a;
   margin: 0 0 16px;
-  color: rgba(255, 255, 255, 0.84);
-  font-size: 12px;
-  letter-spacing: 0.22em;
   text-transform: uppercase;
+  font-style: italic;
 }
 
-.about-grid p {
-  margin: 0;
-  color: rgba(255, 255, 255, 0.62);
-  line-height: 1.72;
+.id-card__row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 6px 12px;
+  margin-bottom: 6px;
 }
 
-.about-grid a {
-  border-bottom: 1px solid rgba(255, 255, 255, 0.28);
+.id-card__label {
+  font-family: "Courier New", monospace;
+  font-size: 10px;
+  letter-spacing: 0.1em;
+  color: #555;
+  text-transform: lowercase;
+}
+
+.id-card__value {
+  font-family: "Courier New", monospace;
+  font-size: 13px;
+  color: #1a1a1a;
+  margin-right: 16px;
+}
+
+.id-card__value a {
+  color: #1a1a1a;
+  text-decoration: none;
+  border-bottom: 1px dashed #888;
+  transition: border-color 0.2s;
+}
+
+.id-card__value a:hover {
+  border-bottom-color: #1a1a1a;
+}
+
+.id-card__divider {
+  height: 1px;
+  background: repeating-linear-gradient(
+    90deg,
+    #1a1a1a 0,
+    #1a1a1a 6px,
+    transparent 6px,
+    transparent 12px
+  );
+  margin: 10px 0;
+  opacity: 0.3;
+}
+
+/* Signature */
+.id-card__signature {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-top: 14px;
+  padding-top: 10px;
+  border-top: 1px solid rgba(0, 0, 0, 0.15);
+}
+
+.id-card__signature span {
+  font-family: "Courier New", monospace;
+  font-size: 10px;
+  color: #555;
+  letter-spacing: 0.1em;
+}
+
+.id-card__sig-img {
+  height: 48px;
+  object-fit: contain;
+  filter: invert(1);
+  opacity: 0.78;
+}
+
+/* Footer */
+.id-card__footer {
+  margin-top: 16px;
+}
+
+.id-card__barcode {
+  display: flex;
+  align-items: flex-end;
+  gap: 2px;
+  height: 32px;
+  margin-bottom: 8px;
+}
+
+.id-card__barcode .bar {
+  display: block;
+  background: #1a1a1a;
+}
+
+.bar--thin {
+  width: 2px;
+  height: 100%;
+}
+
+.bar--medium {
+  width: 3px;
+  height: 92%;
+}
+
+.bar--thick {
+  width: 4px;
+  height: 100%;
+}
+
+.id-card__dates {
+  display: flex;
+  justify-content: flex-end;
+  gap: 24px;
+}
+
+.id-card__date {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+}
+
+/* Disclaimer */
+.id-card__disclaimer {
+  max-width: 640px;
+  font-size: 11px;
+  line-height: 1.7;
+  color: rgba(255, 255, 255, 0.35);
+  text-align: center;
+  letter-spacing: 0.04em;
 }
 
 .album-modal {
@@ -1375,10 +1548,6 @@ a {
 
   .world-branches h3 {
     margin-top: 44px;
-  }
-
-  .about-grid {
-    grid-template-columns: 1fr;
   }
 
   .album-cover-caption {
