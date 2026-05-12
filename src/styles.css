@@ -1134,7 +1134,7 @@ a {
 /* ── ID Card ── */
 .id-card {
   width: min(720px, 92vw);
-  background: #ebe0ce;
+  background: #c4b8a5;
   border-radius: 14px;
   padding: 28px 32px 20px;
   cursor: pointer;
@@ -1189,8 +1189,6 @@ a {
   width: 100%;
   max-height: 140px;
   object-fit: contain;
-  filter: invert(1);
-  opacity: 0.82;
 }
 
 /* Info */
@@ -1277,8 +1275,6 @@ a {
 .id-card__sig-img {
   height: 48px;
   object-fit: contain;
-  filter: invert(1);
-  opacity: 0.78;
 }
 
 /* Footer */

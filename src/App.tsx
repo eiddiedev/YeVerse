@@ -895,7 +895,7 @@ function AboutIssue({ lang }: { lang: Lang }) {
         <div className="id-card__body">
           {/* Left: portrait / signature */}
           <div className="id-card__portrait">
-            <img src="/assets/heroes/kanye-signature.png" alt="Ye signature" />
+            <img src="/assets/heroes/profile.png" alt="Ye" />
           </div>
 
           {/* Right: info fields */}
@@ -947,7 +947,7 @@ function AboutIssue({ lang }: { lang: Lang }) {
             {/* Signature */}
             <div className="id-card__signature">
               <span>{lang === "zh" ? "签名:" : "Signature:"}</span>
-              <img src="/assets/heroes/kanye-signature.png" alt="" className="id-card__sig-img" />
+              <img src="/assets/heroes/sign.png" alt="" className="id-card__sig-img" />
             </div>
           </div>
         </div>
