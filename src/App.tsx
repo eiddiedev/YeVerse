@@ -1208,6 +1208,7 @@ function AboutIssue({ lang }: { lang: Lang }) {
 }
 
 function LoadingScreen({ onComplete }: { onComplete: () => void }) {
+  const [progress, setProgress] = useState(0);
   const [fadeOut, setFadeOut] = useState(false);
 
   useEffect(() => {
@@ -1223,9 +1224,10 @@ function LoadingScreen({ onComplete }: { onComplete: () => void }) {
 
     function check() {
       loaded++;
+      setProgress(Math.round((loaded / total) * 100));
       if (loaded >= total) {
-        setTimeout(() => setFadeOut(true), 300);
-        setTimeout(() => onComplete(), 900);
+        setTimeout(() => setFadeOut(true), 400);
+        setTimeout(() => onComplete(), 1000);
       }
     }
 
@@ -1237,9 +1239,14 @@ function LoadingScreen({ onComplete }: { onComplete: () => void }) {
     });
   }, [onComplete]);
 
+  const p = progress / 100;
+  const r = Math.round(153 + (245 - 153) * p);
+  const g = Math.round(153 + (240 - 153) * p);
+  const b = Math.round(153 + (232 - 153) * p);
+
   return (
     <div className={`loading-screen${fadeOut ? " fade-out" : ""}`}>
-      <span className="loading-ye">YE</span>
+      <span className="loading-ye" style={{ color: `rgb(${r},${g},${b})` }}>YE</span>
     </div>
   );
 }
