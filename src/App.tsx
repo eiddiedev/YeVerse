@@ -285,12 +285,14 @@ function CssAlbumShelf({
   onSelect,
   onFlip,
   onOpen,
+  onHover,
 }: {
   selected: Album;
   flippedAlbumId: string | null;
   onSelect: (album: Album) => void;
   onFlip: (albumId: string | null) => void;
   onOpen: (album: Album) => void;
+  onHover: (album: Album | null) => void;
 }) {
   const selectedIndex = albums.findIndex((album) => album.id === selected.id);
   const [shelfPosition, setShelfPosition] = useState(selectedIndex);
@@ -345,6 +347,8 @@ function CssAlbumShelf({
             className={`cd-case-3d ${isSelected ? "selected" : ""} ${isFlipped ? "flipped" : ""}`}
             key={album.id}
             onClick={() => chooseAlbum(album, index)}
+            onMouseEnter={() => onHover(album)}
+            onMouseLeave={() => onHover(null)}
             style={{
               ...albumStyle(album),
               transform: `translate3d(calc(-50% + ${x}px), calc(-50% + ${y}px), ${z}px) rotateY(${rotateY}deg) rotateZ(${rotateZ}deg) scale(${scale})`,
@@ -386,12 +390,14 @@ function ThreeAlbumShelf({
   onSelect,
   onFlip,
   onOpen,
+  onHover,
 }: {
   selected: Album;
   flippedAlbumId: string | null;
   onSelect: (album: Album) => void;
   onFlip: (albumId: string | null) => void;
   onOpen: (album: Album) => void;
+  onHover: (album: Album | null) => void;
 }) {
   const [webglFailed, setWebglFailed] = useState(false);
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
@@ -609,6 +615,15 @@ function ThreeAlbumShelf({
     const rect = canvas.getBoundingClientRect();
     const ratio = Math.min(1, Math.max(0, (event.clientX - rect.left) / rect.width));
     state.targetPosition = ratio * (albums.length - 1);
+
+    state.pointer.x = ((event.clientX - rect.left) / rect.width) * 2 - 1;
+    state.pointer.y = -((event.clientY - rect.top) / rect.height) * 2 + 1;
+    state.raycaster.setFromCamera(state.pointer, state.camera);
+    const hits = state.raycaster.intersectObjects(state.groups, true);
+    const group = hits[0]?.object.parent;
+    const albumId = group?.userData.albumId as string | undefined;
+    const hovered = albumId ? albums.find((a) => a.id === albumId) ?? null : null;
+    onHover(hovered);
   }
 
   function pickAlbum(event: PointerEvent<HTMLCanvasElement>) {
@@ -638,7 +653,7 @@ function ThreeAlbumShelf({
   }
 
   if (webglFailed) {
-    return <CssAlbumShelf selected={selected} flippedAlbumId={flippedAlbumId} onSelect={onSelect} onFlip={onFlip} onOpen={onOpen} />;
+    return <CssAlbumShelf selected={selected} flippedAlbumId={flippedAlbumId} onSelect={onSelect} onFlip={onFlip} onOpen={onOpen} onHover={onHover} />;
   }
 
   return (
@@ -656,17 +671,27 @@ function DiscographyIssue({
   selected,
   onSelect,
   onOpen,
+  onHoverAlbum,
 }: {
   selected: Album;
   onSelect: (album: Album) => void;
   onOpen: (album: Album) => void;
+  onHoverAlbum: (album: Album | null) => void;
 }) {
   const [flippedAlbumId, setFlippedAlbumId] = useState<string | null>(null);
+  const [hoveredAlbum, setHoveredAlbum] = useState<Album | null>(null);
+
+  function handleHover(album: Album | null) {
+    setHoveredAlbum(album);
+    onHoverAlbum(album);
+  }
+
+  const display = hoveredAlbum ?? selected;
 
   return (
     <section
       className={`issue issue-discography immersive-shelf ${flippedAlbumId ? "has-flipped-case" : ""}`}
-      style={albumStyle(selected)}
+      style={albumStyle(display)}
     >
       <div className="shelf-depth" aria-hidden="true" />
       <ThreeAlbumShelf
@@ -675,10 +700,11 @@ function DiscographyIssue({
         onSelect={onSelect}
         onFlip={setFlippedAlbumId}
         onOpen={onOpen}
+        onHover={handleHover}
       />
       <div className="shelf-caption">
-        <span>{selected.title}</span>
-        <span>{flippedAlbumId === selected.id ? "CLICK AGAIN TO ENTER" : "CLICK TO TURN"}</span>
+        <span>{display.title} · {display.year}</span>
+        <span>{flippedAlbumId === display.id ? "CLICK AGAIN TO ENTER" : "CLICK TO TURN"}</span>
       </div>
     </section>
   );
@@ -889,12 +915,15 @@ export default function App() {
   const [selectedAlbum, setSelectedAlbum] = useState(albums[0]);
   const [openAlbum, setOpenAlbum] = useState<Album | null>(null);
   const [expandedBranch, setExpandedBranch] = useState(timelineBranches[0].id);
+  const [hoveredAlbumIndex, setHoveredAlbumIndex] = useState<number | null>(null);
 
   const selectedIndex = useMemo(() => albums.findIndex((album) => album.id === selectedAlbum.id) + 1, [selectedAlbum.id]);
+  const displayIndex = hoveredAlbumIndex ?? selectedIndex;
 
   function navigate(issue: IssueId) {
     setActiveIssue(issue);
     setDrawerOpen(false);
+    setHoveredAlbumIndex(null);
   }
 
   function jumpToAlbum(albumId: string) {
@@ -917,7 +946,7 @@ export default function App() {
       <Topbar
         issue={activeIssue}
         lang={lang}
-        selectedIndex={selectedIndex}
+        selectedIndex={displayIndex}
         onHome={() => navigate("hero")}
         onToggleLang={() => setLang((value) => (value === "zh" ? "en" : "zh"))}
       />
@@ -931,7 +960,14 @@ export default function App() {
             onAlbumJump={jumpToAlbum}
           />
         )}
-        {activeIssue === "discography" && <DiscographyIssue selected={selectedAlbum} onSelect={setSelectedAlbum} onOpen={setOpenAlbum} />}
+        {activeIssue === "discography" && (
+          <DiscographyIssue
+            selected={selectedAlbum}
+            onSelect={setSelectedAlbum}
+            onOpen={setOpenAlbum}
+            onHoverAlbum={(album) => setHoveredAlbumIndex(album ? albums.findIndex((a) => a.id === album.id) + 1 : null)}
+          />
+        )}
         {activeIssue === "yeworld" && <YeWorldIssue lang={lang} />}
         {activeIssue === "archive" && <ArchiveIssue lang={lang} />}
         {activeIssue === "about" && <AboutIssue lang={lang} />}

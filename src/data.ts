@@ -167,7 +167,7 @@ export const albums: Album[] = [
     credit: "Kanye West",
     palette: { primary: "#7d0714", secondary: "#080305", text: "#ffd7c6" },
     cover: "/assets/covers/mbdtf.jpg",
-    heroImage: "/assets/heroes/mbdtf.jpg",
+    heroImage: "/assets/heroes/mbdtf.png",
     summary: {
       zh: "奢华、悔罪、狂妄与自我审判汇成一场巴洛克式说唱歌剧。深红与黑色成为这座宇宙里最浓烈的厅堂。",
       en: "Luxury, confession, arrogance, and self-trial converge into a baroque rap opera: the deepest red chamber in the universe.",
@@ -221,7 +221,7 @@ export const albums: Album[] = [
     credit: "Kanye West",
     palette: { primary: "#f2f2f2", secondary: "#050505", text: "#ffffff" },
     cover: "/assets/covers/yeezus.jpg",
-    heroImage: "/assets/heroes/yeezus.jpeg",
+    heroImage: "/assets/heroes/yeezus.png",
     summary: {
       zh: "工业噪音、极简封面、刺耳合成器和反流行结构。它像一块没有装饰的黑白金属板，冷、硬、冒犯、精准。",
       en: "Industrial noise, a minimal package, abrasive synths, and anti-pop structure: a cold black-and-white metal plate.",
@@ -293,7 +293,7 @@ export const albums: Album[] = [
     credit: "Kanye West",
     palette: { primary: "#2457d6", secondary: "#050814", text: "#d9e8ff" },
     cover: "/assets/covers/jesus-is-king.jpg",
-    heroImage: "/assets/heroes/jesus-is-king.webp",
+    heroImage: "/assets/heroes/jesus-is-king.png",
     summary: {
       zh: "福音转向的正式声明，合唱、信仰语言与蓝色极简封面组成新的精神秩序。",
       en: "A formal gospel turn, placing choir, devotional language, and a blue minimal cover inside a new spiritual order.",
@@ -329,7 +329,7 @@ export const albums: Album[] = [
     credit: "Kanye West",
     palette: { primary: "#2e2e2e", secondary: "#050505", text: "#f2f2f2" },
     cover: "/assets/covers/donda-2.jpg",
-    heroImage: "/assets/heroes/donda-2.jpg",
+    heroImage: "/assets/heroes/donda-2.png",
     note: {
       zh: "特殊发行：最初通过 Stem Player 发布，站内以正式 solo 口径收录并标注状态。",
       en: "Special release: initially issued through Stem Player; included here as a solo record with release context noted.",
