@@ -1207,7 +1207,45 @@ function AboutIssue({ lang }: { lang: Lang }) {
   );
 }
 
+function LoadingScreen({ onComplete }: { onComplete: () => void }) {
+  const [fadeOut, setFadeOut] = useState(false);
+
+  useEffect(() => {
+    const coverPaths = albums.map((a) => a.cover);
+    const heroPaths = albums.map((a) => a.heroImage ?? a.cover);
+    const timelinePaths = Array.from({ length: 10 }, (_, i) => `/assets/${i + 1}.png`);
+    const texturePaths = ["/assets/textures/black-paper-grain.jpeg", "/assets/textures/void-paper-wash.jpeg"];
+    const extraPaths = ["/assets/heroes/kanye-signature.png", "/assets/heroes/profile.png", "/assets/heroes/sign.png"];
+    const allPaths = [...new Set([...coverPaths, ...heroPaths, ...timelinePaths, ...texturePaths, ...extraPaths])];
+
+    let loaded = 0;
+    const total = allPaths.length;
+
+    function check() {
+      loaded++;
+      if (loaded >= total) {
+        setTimeout(() => setFadeOut(true), 300);
+        setTimeout(() => onComplete(), 900);
+      }
+    }
+
+    allPaths.forEach((src) => {
+      const img = new Image();
+      img.onload = check;
+      img.onerror = check;
+      img.src = src;
+    });
+  }, [onComplete]);
+
+  return (
+    <div className={`loading-screen${fadeOut ? " fade-out" : ""}`}>
+      <span className="loading-ye">YE</span>
+    </div>
+  );
+}
+
 export default function App() {
+  const [imagesLoaded, setImagesLoaded] = useState(false);
   const [lang, setLang] = useState<Lang>("zh");
   const [activeIssue, setActiveIssue] = useState<IssueId>("hero");
   const [drawerOpen, setDrawerOpen] = useState(false);
@@ -1245,6 +1283,10 @@ export default function App() {
     setTransPhase("idle");
     setTransAlbumId(null);
     pendingAlbumRef.current = null;
+  }
+
+  if (!imagesLoaded) {
+    return <LoadingScreen onComplete={() => setImagesLoaded(true)} />;
   }
 
   return (

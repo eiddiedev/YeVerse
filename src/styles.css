@@ -1998,3 +1998,48 @@ a {
     padding: 72px 22px;
   }
 }
+
+/* ══════════════════════════════════════════════════════
+   LOADING SCREEN
+   ══════════════════════════════════════════════════════ */
+
+.loading-screen {
+  position: fixed;
+  inset: 0;
+  z-index: 10000;
+  background: #000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: opacity 600ms ease;
+}
+
+.loading-screen.fade-out {
+  opacity: 0;
+  pointer-events: none;
+}
+
+.loading-ye {
+  font-family: "Archivo Black", "Anton", Impact, sans-serif;
+  font-size: clamp(80px, 18vw, 200px);
+  font-weight: 900;
+  letter-spacing: 0.04em;
+  color: #999;
+  animation: yeReveal 1.8s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+}
+
+@keyframes yeReveal {
+  0% {
+    opacity: 0;
+    transform: translateY(60px);
+    color: #666;
+  }
+  40% {
+    opacity: 1;
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0);
+    color: #f5f0e8;
+  }
+}
