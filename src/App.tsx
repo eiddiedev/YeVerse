@@ -1,7 +1,8 @@
-import { useEffect, useMemo, useRef, useState, type CSSProperties, type PointerEvent } from "react";
+import { useEffect, useRef, useState, type CSSProperties, type PointerEvent } from "react";
 import { ArrowUpRight, Globe2, Menu, X } from "lucide-react";
 import * as THREE from "three";
-import { albums, timelineEras, type Album, type Lang, type TimelineEra } from "./data";
+import { albums, timelineEras, type Album, type Lang } from "./data";
+import "./transitions.css";
 
 const issueIds = ["hero", "timeline", "discography", "yeworld", "archive", "about"] as const;
 type IssueId = (typeof issueIds)[number];
@@ -167,13 +168,11 @@ function IssueDrawer({
 function Topbar({
   issue,
   lang,
-  selectedIndex,
   onHome,
   onToggleLang,
 }: {
   issue: IssueId;
   lang: Lang;
-  selectedIndex: number;
   onHome: () => void;
   onToggleLang: () => void;
 }) {
@@ -184,7 +183,6 @@ function Topbar({
       </button>
       <div className="topbar-status">
         <span>{issueLabels[issue]}</span>
-        <span>{String(selectedIndex).padStart(2, "0")} / 17</span>
         <button className="lang-toggle" onClick={onToggleLang}>
           <Globe2 size={15} />
           {lang === "zh" ? "EN" : "中"}
@@ -207,76 +205,77 @@ function HeroIssue() {
 }
 
 function TimelineIssue({ lang, onAlbumJump }: { lang: Lang; onAlbumJump: (albumId: string) => void }) {
-  const scrollRef = useRef<HTMLDivElement | null>(null);
-
-  function getEraCover(era: TimelineEra): string | undefined {
-    if (!era.albumIds?.length) return undefined;
-    const album = albums.find((a) => a.id === era.albumIds![0]);
-    return album?.cover;
-  }
-
-  function getEraColor(era: TimelineEra): string {
-    if (!era.albumIds?.length) return "#1a1a1a";
-    const album = albums.find((a) => a.id === era.albumIds![0]);
-    return album?.palette.primary ?? "#1a1a1a";
-  }
-
   return (
     <section className="issue issue-timeline">
-      <div className="timeline-header">
-        <p className="eyebrow">TIMELINE</p>
-        <h2>{lang === "zh" ? "Ye 的成长之路" : "The Path of Ye"}</h2>
-      </div>
-      <div className="timeline-scroll" ref={scrollRef}>
-        <div className="timeline-line" aria-hidden="true" />
-        <div className="timeline-track">
-          {timelineEras.map((era, index) => {
-            const cover = getEraCover(era);
-            const color = getEraColor(era);
-            const firstAlbumId = era.albumIds?.[0];
-            return (
-              <article
-                key={era.id}
-                className="timeline-era"
-                style={{ "--era-color": color } as CSSProperties}
-              >
-                <div className="era-image">
-                  {cover ? (
-                    <img
-                      src={cover}
-                      alt={text(era.title, lang)}
-                      onClick={() => firstAlbumId && onAlbumJump(firstAlbumId)}
-                      className={firstAlbumId ? "clickable" : ""}
-                    />
-                  ) : (
-                    <div className="era-image-placeholder" />
-                  )}
-                  <span className="era-index">{String(index + 1).padStart(2, "0")}</span>
-                </div>
-                <div className="era-marker">
-                  <span className="era-dot" />
-                  <span className="era-range">{era.range}</span>
-                </div>
-                <div className="era-text">
-                  <h3>{text(era.title, lang)}</h3>
-                  <p>{text(era.body, lang)}</p>
-                  {era.albumIds && era.albumIds.length > 1 && (
-                    <div className="era-albums">
+      <div className="tl-container">
+        {/* Header */}
+        <header className="tl-header">
+          <p className="eyebrow">{lang === "zh" ? "时间线" : "TIMELINE"}</p>
+          <h2 className="tl-title">
+            {lang === "zh" ? "Kanye West / Ye" : "Kanye West / Ye"}
+          </h2>
+          <p className="tl-subtitle">
+            {lang === "zh"
+              ? "音乐、时尚、文化与公众身份的视觉档案"
+              : "A visual archive of music, fashion, culture, and public identity."}
+          </p>
+        </header>
+
+        {/* Timeline axis */}
+        <div className="tl-axis" aria-hidden="true" />
+
+        {/* Timeline entries */}
+        {timelineEras.map((era, index) => {
+          const side = index % 2 === 0 ? "left" : "right";
+          const figNum = String(index + 1).padStart(2, "0");
+
+          return (
+            <article key={era.id} className={`tl-entry tl-entry--${side}`}>
+              {/* Dot on axis */}
+              <div className="tl-dot-wrap" aria-hidden="true">
+                <span className="tl-dot" />
+              </div>
+
+              {/* Content */}
+              <div className="tl-content">
+                {/* Text side */}
+                <div className="tl-text">
+                  <div className="tl-years">{era.range}</div>
+                  <h3 className="tl-era-title">{text(era.title, lang)}</h3>
+                  <div className="tl-line-accent" aria-hidden="true" />
+                  <p className="tl-body">{text(era.body, lang)}</p>
+                  {era.albumIds && era.albumIds.length > 0 && (
+                    <div className="tl-albums">
                       {era.albumIds.map((id: string) => {
                         const album = albums.find((a) => a.id === id);
                         return album ? (
-                          <button key={id} className="era-album-link" onClick={() => onAlbumJump(id)}>
-                            <span>{album.title}</span>
+                          <button key={id} className="tl-album-link" onClick={() => onAlbumJump(id)}>
+                            {album.title}
                           </button>
                         ) : null;
                       })}
                     </div>
                   )}
                 </div>
-              </article>
-            );
-          })}
-        </div>
+
+                {/* Image side */}
+                <div className="tl-fig">
+                  <div className="tl-fig-placeholder">
+                    <span className="tl-fig-label">FIG. {figNum}</span>
+                  </div>
+                </div>
+              </div>
+            </article>
+          );
+        })}
+
+        {/* Footer */}
+        <footer className="tl-footer">
+          <span className="tl-footer-line" aria-hidden="true" />
+          <span className="tl-footer-text">
+            {lang === "zh" ? "未完待续" : "TO BE CONTINUED"}
+          </span>
+        </footer>
       </div>
     </section>
   );
@@ -748,6 +747,83 @@ function CustomCursor() {
   );
 }
 
+const transitionAlbums = [
+  "college-dropout", "late-registration", "graduation", "808s-heartbreak",
+  "mbdtf", "watch-the-throne", "cruel-summer", "yeezus",
+  "life-of-pablo", "ye", "kids-see-ghosts", "jesus-is-king",
+  "donda", "donda-2", "vultures-1", "vultures-2", "bully",
+];
+
+function MosaicBlocks() {
+  const colors = [
+    "#7d0714", "#961018", "#b81a2a", "#cc2222",
+    "#e8302a", "#c01818", "#5a0a10", "#3a0808",
+    "#f06848", "#d45a2a", "#e8922a", "#f0a830",
+  ];
+  const cols = 20;
+  const rows = 14;
+  const delays = Array.from({ length: cols * rows }, () => Math.floor(Math.random() * 1200));
+  const colorIndices = Array.from({ length: cols * rows }, () => Math.floor(Math.random() * colors.length));
+
+  return (
+    <div className="mosaic-layer">
+      {Array.from({ length: rows }, (_, row) =>
+        Array.from({ length: cols }, (_, col) => {
+          const i = row * cols + col;
+          return (
+            <div
+              key={i}
+              className="mosaic-block"
+              style={{
+                left: `${(col / cols) * 100}%`,
+                top: `${(row / rows) * 100}%`,
+                width: `${100 / cols}%`,
+                height: `${100 / rows}%`,
+                background: colors[colorIndices[i]],
+                animationDelay: `${delays[i]}ms`,
+              } as CSSProperties}
+            />
+          );
+        })
+      )}
+    </div>
+  );
+}
+
+function TransitionOverlay({
+  albumId,
+  phase,
+  onFadeOutComplete,
+}: {
+  albumId: string | null;
+  phase: "idle" | "in" | "out";
+  onFadeOutComplete: () => void;
+}) {
+  useEffect(() => {
+    if (phase === "out") {
+      const timer = setTimeout(onFadeOutComplete, 420);
+      return () => clearTimeout(timer);
+    }
+  }, [phase, onFadeOutComplete]);
+
+  if (!albumId || phase === "idle") return null;
+
+  const isActive = transitionAlbums.includes(albumId);
+  const transClass = isActive ? `trans-${albumId}` : "trans-college-dropout";
+
+  return (
+    <div
+      className={`transition-overlay active ${transClass} ${phase === "in" ? "transition-fade-in" : "transition-fade-out"}`}
+      style={{ "--trans-duration": "1800ms" } as CSSProperties}
+    >
+      <div className="trans-layer-1" />
+      <div className="trans-layer-2" />
+      <div className="trans-layer-3" />
+      {albumId === "mbdtf" && <MosaicBlocks />}
+    </div>
+  );
+}
+
 function AlbumModal({ album, lang, onClose }: { album: Album; lang: Lang; onClose: () => void }) {
   const scrollRef = useRef<HTMLDivElement | null>(null);
   const [scrollProgress, setScrollProgress] = useState(0);
@@ -984,22 +1060,38 @@ export default function App() {
   const [drawerOpen, setDrawerOpen] = useState(false);
   const [selectedAlbum, setSelectedAlbum] = useState(albums[0]);
   const [openAlbum, setOpenAlbum] = useState<Album | null>(null);
-  const [hoveredAlbumIndex, setHoveredAlbumIndex] = useState<number | null>(null);
+  const [transAlbumId, setTransAlbumId] = useState<string | null>(null);
+  const [transPhase, setTransPhase] = useState<"idle" | "in" | "out">("idle");
+  const pendingAlbumRef = useRef<Album | null>(null);
 
-  const selectedIndex = useMemo(() => albums.findIndex((album) => album.id === selectedAlbum.id) + 1, [selectedAlbum.id]);
-  const displayIndex = hoveredAlbumIndex ?? selectedIndex;
 
   function navigate(issue: IssueId) {
     setActiveIssue(issue);
     setDrawerOpen(false);
-    setHoveredAlbumIndex(null);
   }
 
   function jumpToAlbum(albumId: string) {
     const album = albums.find((item) => item.id === albumId);
     if (!album) return;
     setSelectedAlbum(album);
-    navigate("discography");
+    openAlbumWithTransition(album);
+  }
+
+  function openAlbumWithTransition(album: Album) {
+    if (transPhase !== "idle") return;
+    pendingAlbumRef.current = album;
+    setTransAlbumId(album.id);
+    setTransPhase("in");
+    setTimeout(() => {
+      setTransPhase("out");
+      setOpenAlbum(pendingAlbumRef.current);
+    }, 1800);
+  }
+
+  function handleFadeOutComplete() {
+    setTransPhase("idle");
+    setTransAlbumId(null);
+    pendingAlbumRef.current = null;
   }
 
   return (
@@ -1015,7 +1107,6 @@ export default function App() {
       <Topbar
         issue={activeIssue}
         lang={lang}
-        selectedIndex={displayIndex}
         onHome={() => navigate("hero")}
         onToggleLang={() => setLang((value) => (value === "zh" ? "en" : "zh"))}
       />
@@ -1028,14 +1119,19 @@ export default function App() {
           <DiscographyIssue
             selected={selectedAlbum}
             onSelect={setSelectedAlbum}
-            onOpen={setOpenAlbum}
-            onHoverAlbum={(album) => setHoveredAlbumIndex(album ? albums.findIndex((a) => a.id === album.id) + 1 : null)}
+            onOpen={openAlbumWithTransition}
+            onHoverAlbum={() => {}}
           />
         )}
         {activeIssue === "yeworld" && <YeWorldIssue lang={lang} />}
         {activeIssue === "archive" && <ArchiveIssue lang={lang} />}
         {activeIssue === "about" && <AboutIssue />}
       </main>
+      <TransitionOverlay
+        albumId={transAlbumId}
+        phase={transPhase}
+        onFadeOutComplete={handleFadeOutComplete}
+      />
       {openAlbum && <AlbumModal album={openAlbum} lang={lang} onClose={() => setOpenAlbum(null)} />}
     </div>
   );
